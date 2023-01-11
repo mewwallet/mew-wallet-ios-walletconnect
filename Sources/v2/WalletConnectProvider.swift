@@ -1,6 +1,7 @@
 import WalletConnectSign
 import WalletConnectUtils
 import WalletConnectPairing
+import WalletConnectEcho
 import Combine
 import Foundation
 
@@ -29,6 +30,10 @@ public final class WalletConnectProvider {
   public func configure(projectId: String, metadata: AppMetadata) {
     Networking.configure(projectId: projectId, socketFactory: SocketFactory())
     Pair.configure(metadata: metadata)
+    
+    let clientId  = try! Networking.interactor.getClientId()
+    let sanitizedClientId = clientId.replacingOccurrences(of: "did:key:", with: "")
+    Echo.configure(projectId: projectId, clientId: sanitizedClientId)
   }
   
   /// For wallet to establish a pairing
@@ -38,22 +43,20 @@ public final class WalletConnectProvider {
   /// Throws Error:
   /// - When URI is invalid format or missing params
   /// - When topic is already in use
-  public func pair(url: String?) async throws {
-    guard let url = url, let wcURL = WalletConnectURI(string: url) else {
-      throw WalletConnectServiceError.invalidPairingURL
-    }
+  public func pair(url: String) async throws {
+    guard let wcURL = WalletConnectURI(string: url) else { throw WalletConnectServiceError.invalidPairingURL }
     try await Pair.instance.pair(uri: wcURL)
   }
   
-  public func respondOnSign(request: Request, result: AnyCodable) async throws {
+  public func approve(request: Request, result: any Codable) async throws {
     try await respond(
       topic: request.topic,
       requestId: request.id,
-      response: .response(result)
+      response: .response(AnyCodable(result))
     )
   }
   
-  public func respondOnReject(request: Request) async throws {
+  public func reject(request: Request) async throws {
     try await WalletConnectProvider.instance.respond(
       topic: request.topic,
       requestId: request.id,
@@ -70,15 +73,19 @@ public final class WalletConnectProvider {
     try await Sign.instance.respond(topic: topic, requestId: requestId, response: response)
   }
   
-  public func approve(proposal: SessionProposal, account: String) async throws {
+  public func approve(proposal: Session.Proposal, accounts: [String]) async throws {
     var sessionNamespaces = [String: SessionNamespace]()
     proposal.requiredNamespaces.forEach {
       let caip2Namespace = $0.key
       let proposalNamespace = $0.value
-      let accounts = Set(proposalNamespace.chains.compactMap { Account($0.absoluteString + ":\(account)") })
+      let accounts = Set(accounts.flatMap { account in
+        proposalNamespace.chains.compactMap { Account($0.absoluteString + ":\(account)") }
+      })
       
       let extensions: [SessionNamespace.Extension]? = proposalNamespace.extensions?.map { element in
-        let accounts = Set(element.chains.compactMap { Account($0.absoluteString + ":\(account)") })
+        let accounts = Set(accounts.flatMap { account in
+          element.chains.compactMap { Account($0.absoluteString + ":\(account)") }
+        })
         return SessionNamespace.Extension(accounts: accounts, methods: element.methods, events: element.events)
       }
       let sessionNamespace = SessionNamespace(
@@ -89,6 +96,7 @@ public final class WalletConnectProvider {
       )
       sessionNamespaces[caip2Namespace] = sessionNamespace
     }
+    debugPrint(sessionNamespaces)
     try await approve(proposalId: proposal.id, namespaces: sessionNamespaces)
   }
   
@@ -132,8 +140,8 @@ public final class WalletConnectProvider {
   /// Should Error:
   /// - When the session topic is not found
   /// - Parameters:
-  ///   - topic: Session topic that you want to delete
-  public func disconnect(topic: String) async throws {
-    try await Sign.instance.disconnect(topic: topic)
+  ///   - session: Session that you want to delete
+  public func disconnect(session: Session) async throws {
+    try await Sign.instance.disconnect(topic: session.topic)
   }
 }

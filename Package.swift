@@ -21,7 +21,7 @@ let package = Package(
       targets: ["mew-wallet-ios-walletconnect-v2"])
   ],
   dependencies: [
-    .package(url: "https://github.com/WalletConnect/WalletConnectSwiftV2", exact: "1.2.0"),
+    .package(url: "https://github.com/mewwallet/WalletConnectSwiftV2", branch: "feature/wcsession_created"),
     .package(url: "https://github.com/krzyzanowskim/CryptoSwift", from: "1.4.0"),
     .package(url: "https://github.com/daltoniam/Starscream", from: "4.0.0"),
     .package(url: "git@github.com:mewwallet/mew-wallet-ios-logger.git", .upToNextMajor(from: "1.0.0"))
@@ -31,7 +31,10 @@ let package = Package(
     // Targets can depend on other targets in this package, and on products in packages this package depends on.
     .target(
       name: "mew-wallet-ios-walletconnect",
-      dependencies: [],
+      dependencies: [
+        "mew-wallet-ios-walletconnect-v1",
+        "mew-wallet-ios-walletconnect-v2"
+      ],
       path: "Sources/mew-wallet-ios-walletconnect"
     ),
     .target(
@@ -47,6 +50,7 @@ let package = Package(
       dependencies: [
         .product(name: "WalletConnect", package: "WalletConnectSwiftV2"),
         .product(name: "WalletConnectNetworking", package: "WalletConnectSwiftV2"),
+        .product(name: "WalletConnectEcho", package: "WalletConnectSwiftV2"),
         .product(name: "Starscream", package: "Starscream")
       ],
       path: "Sources/v2"),

@@ -13,10 +13,15 @@ import mew_wallet_ios_logger
 final class SessionManager {
   private var _cancellables = Set<AnyCancellable>()
   
-  private let requestSubject = PassthroughSubject<(Session, JSONRPC.Request), Never>()
-  var requestPublisher: AnyPublisher<(Session, JSONRPC.Request), Never> { requestSubject.eraseToAnyPublisher() }
+  private let sessionProposalSubject = PassthroughSubject<(JSONRPC.Request, Session), Never>()
+  private let requestSubject = PassthroughSubject<(JSONRPC.Request, Session), Never>()
+  private let sessionDeleteSubject = PassthroughSubject<(String, Reason), Never>()
   
-  private var storage: SessionStorage {
+  var sessionProposalPublisher: AnyPublisher<(JSONRPC.Request, Session), Never> { sessionProposalSubject.eraseToAnyPublisher() }
+  var requestPublisher: AnyPublisher<(JSONRPC.Request, Session), Never> { requestSubject.eraseToAnyPublisher() }
+  var sessionDeletePublisher: AnyPublisher<(String, Reason), Never> { sessionDeleteSubject.eraseToAnyPublisher() }
+  
+  internal var storage: SessionStorage {
     guard let _storage else {
       fatalError("_storage must be set via `configure`")
     }
@@ -61,19 +66,21 @@ final class SessionManager {
       }
       .sink {[weak self] (session: Session, request: JSONRPC.Request) in
         switch request.method {
-        case .wc_sessionRequest(let request):
-          session.update(with: request)
+        case .wc_sessionRequest(let proposal):
+          session.update(with: proposal)
           self?.storage.save()
+          self?.sessionProposalSubject.send((request, session))
         case .wc_sessionUpdate(let update):
           if !update.approved {
-            self?.storage.remove(session)
+            let reason = JSONRPC.Error.disconnected
+            self?.storage.delete(session, reason: reason)
+            self?.sessionDeleteSubject.send((session.topic, reason))
             self?._network.disconnect(session: session)
           }
           return
         default:
-          break
+          self?.requestSubject.send((request, session))
         }
-        self?.requestSubject.send((session, request))
       }
       .store(in: &_cancellables)
   }
@@ -98,7 +105,9 @@ final class SessionManager {
   }
   
   func disconnect(session: Session) {
-    self.storage.remove(session)
+    let reason = JSONRPC.Error.disconnected
+    self.storage.delete(session, reason: reason)
+    self.sessionDeleteSubject.send((session.topic, reason))
   }
   
   func send<T: Codable>(message: T, for session: Session) throws {

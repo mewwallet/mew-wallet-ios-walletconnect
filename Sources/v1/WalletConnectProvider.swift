@@ -15,9 +15,17 @@ public final class WalletConnectProvider {
   
   private var metadata: Session.AppMetadata?
   
-  public var requestPublisher: AnyPublisher<(Session, JSONRPC.Request), Never> { manager.requestPublisher }
+//  internal var requestPublisher: AnyPublisher<(Session, JSONRPC.Request), Never> { manager.requestPublisher }
   
-  private let manager = SessionManager()
+  internal let manager = SessionManager()
+  
+  public let events = WalletConnectSessionPublisher()
+  
+  /// Query sessions
+  /// - Returns: All sessions
+  public var sessions: [Session] {
+    return manager.storage.sessions
+  }
   
   public func configure(metadata: Session.AppMetadata, storage: SessionStorage) {
     self.metadata = metadata
@@ -31,13 +39,12 @@ public final class WalletConnectProvider {
   /// Throws Error:
   /// - When URI is invalid format or missing params
   /// - When topic is already in use
-  public func pair(url: String?) async throws {
-    guard let url else { return }
+  public func pair(url: String) async throws {
     let wcURL = try WalletConnectURI(string: url)
     try manager.add(wcURL)
   }
   
-  public func approve<T: Codable>(request: JSONRPC.Request, for session: Session, result: T) throws {
+  public func approve<T: Codable>(request: JSONRPC.Request, for session: Session, result: T) async throws {
     switch request.method {
     case .wc_sessionRequest:
       guard let result = result as? [String] else { throw WalletConnectProvider.Error.badResult }
@@ -64,7 +71,7 @@ public final class WalletConnectProvider {
     }
   }
   
-  public func reject(request: JSONRPC.Request, for session: Session) {
+  public func reject(request: JSONRPC.Request, for session: Session) async throws {
     let response = JSONRPC.Response<Int>(id: request.id, error: .rejected)
     do {
       try manager.send(message: response, for: session)
@@ -73,7 +80,7 @@ public final class WalletConnectProvider {
     }
   }
   
-  public func disconnect(session: Session) {
+  public func disconnect(session: Session) async throws {
     let update = JSONRPC.Request.Params.SessionUpdate(
       approved: false,
       chainId: nil,

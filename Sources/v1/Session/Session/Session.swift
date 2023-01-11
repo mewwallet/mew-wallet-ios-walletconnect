@@ -11,15 +11,17 @@ public final class Session {
   private let _uri: WalletConnectURI
   private var _peerId: String?
   
+  public let created: Date
   public let uuid: String
   var topic: String { _uri.topic }
   var peerId: String? { _peerId }
   var bridge: URL { _uri.bridge }
   public var metadata: AppMetadata?
   
-  public init(uri: WalletConnectURI, uuid: String = UUID().uuidString) {
+  public init(uri: WalletConnectURI, uuid: String = UUID().uuidString, created: Date = Date()) {
     _uri = uri
     self.uuid = uuid
+    self.created = created
   }
   
   func update(with sessionRequest: JSONRPC.Request.Params.SessionRequest) {
@@ -53,6 +55,7 @@ extension Session: Codable {
     case peerId
     case uuid
     case metadata
+    case created
   }
   
   public convenience init(from decoder: Decoder) throws {
@@ -60,7 +63,8 @@ extension Session: Codable {
     let uriString   = try container.decode(String.self,                 forKey: .uri)
     let uri = try WalletConnectURI(string: uriString)
     let uuid        = try container.decode(String.self,                 forKey: .uuid)
-    self.init(uri: uri, uuid: uuid)
+    let created     = try container.decodeIfPresent(Date.self,          forKey: .created) ?? Date()
+    self.init(uri: uri, uuid: uuid, created: created)
     _peerId         = try container.decodeIfPresent(String.self,        forKey: .peerId)
     metadata        = try container.decodeIfPresent(AppMetadata.self,   forKey: .metadata)
   }
@@ -71,6 +75,13 @@ extension Session: Codable {
     try container.encode(uuid,                forKey: .uuid)
     try container.encodeIfPresent(_peerId,    forKey: .peerId)
     try container.encodeIfPresent(metadata,   forKey: .metadata)
+    try container.encode(self.created,        forKey: .created)
   }
   
+}
+
+extension Session: Comparable {
+  public static func < (lhs: Session, rhs: Session) -> Bool {
+    lhs.created < rhs.created
+  }
 }
