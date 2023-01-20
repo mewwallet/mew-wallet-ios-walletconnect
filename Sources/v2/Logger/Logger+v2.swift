@@ -11,4 +11,5 @@ import mew_wallet_ios_logger
 
 extension Logger.System {
   public static var networking     = Logger.System.with(subsystem: "com.myetherwallet.mewwallet.walletconnect.v2", category: "v2: networking")
+  public static var provider       = Logger.System.with(subsystem: "com.myetherwallet.mewwallet.walletconnect.v2", category: "v2: provider")
 }

@@ -5,6 +5,7 @@
 //  Created by Mikhail Nikanorov on 1/6/23.
 //
 
+import os
 import Foundation
 import mew_wallet_ios_walletconnect_v1
 import mew_wallet_ios_walletconnect_v2
@@ -40,7 +41,7 @@ public final class WalletConnectProvider {
         throw error
       }
     } catch {
-      debugPrint("error: \(error)")
+      Logger.debug(.rootProvider, "Error: \(error)")
     }
   }
   

@@ -15,8 +15,6 @@ public final class WalletConnectProvider {
   
   private var metadata: Session.AppMetadata?
   
-//  internal var requestPublisher: AnyPublisher<(Session, JSONRPC.Request), Never> { manager.requestPublisher }
-  
   internal let manager = SessionManager()
   
   public let events = WalletConnectSessionPublisher()

@@ -63,7 +63,7 @@ extension Session: Codable {
     let uriString   = try container.decode(String.self,                 forKey: .uri)
     let uri = try WalletConnectURI(string: uriString)
     let uuid        = try container.decode(String.self,                 forKey: .uuid)
-    let created     = try container.decodeIfPresent(Date.self,          forKey: .created) ?? Date()
+    let created     = (try? container.decodeIfPresent(Date.self,          forKey: .created)) ?? Date()
     self.init(uri: uri, uuid: uuid, created: created)
     _peerId         = try container.decodeIfPresent(String.self,        forKey: .peerId)
     metadata        = try container.decodeIfPresent(AppMetadata.self,   forKey: .metadata)
