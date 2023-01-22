@@ -81,7 +81,6 @@ extension NetworkingInteractor {
       _socket = WebSocket(request: request)
       
       _socket?.onEvent = {[weak self, weak _socket] event in
-        Logger.debug(.networking, "event: \(event)")
         guard let socket = _socket else { return }
         switch event {
         case .connected:        self?._process(socket: socket, status: .connected)
@@ -91,7 +90,7 @@ extension NetworkingInteractor {
         case .text(let text):   self?._process(socket: socket, message: text)
         case .ping:             socket.write(pong: Data())
         default:
-          debugPrint(event)
+          Logger.debug(system: .networking, "Event: \(event)")
         }
       }
       status = .connecting

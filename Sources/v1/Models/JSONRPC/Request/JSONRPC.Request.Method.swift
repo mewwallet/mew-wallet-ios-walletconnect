@@ -14,7 +14,7 @@ extension JSONRPC.Request {
 
     case eth_sign(address: String, data: Data, message: String?)
     case eth_personalSign(address: String, data: Data, message: String?)
-    case eth_signTypeData(address: String, message: Any)
+    case eth_signTypedData(address: String, message: Any)
     case eth_signTransaction(transaction: JSONRPC.Request.Params.Transaction)
     case eth_sendTransaction(transaction: JSONRPC.Request.Params.Transaction)
     
@@ -24,7 +24,7 @@ extension JSONRPC.Request {
       case .wc_sessionUpdate:     return .wc_sessionUpdate
       case .eth_sign:             return .eth_sign
       case .eth_personalSign:     return .eth_personalSign
-      case .eth_signTypeData:     return .eth_signTypeData
+      case .eth_signTypedData:    return .eth_signTypedData
       case .eth_signTransaction:  return .eth_signTransaction
       case .eth_sendTransaction:  return .eth_sendTransaction
       }
@@ -36,7 +36,7 @@ extension JSONRPC.Request {
     case wc_sessionUpdate     = "wc_sessionUpdate"
     case eth_sign             = "eth_sign"
     case eth_personalSign     = "personal_sign"
-    case eth_signTypeData     = "eth_signTypedData"
+    case eth_signTypedData    = "eth_signTypedData"
     case eth_signTransaction  = "eth_signTransaction"
     case eth_sendTransaction  = "eth_sendTransaction"
   }

@@ -10,6 +10,15 @@
       }
     },
     {
+      "identity" : "mew-wallet-ios-logger",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:mewwallet/mew-wallet-ios-logger.git",
+      "state" : {
+        "revision" : "fab448eb8e7f3552b5423996d5a060f6a3d94f4c",
+        "version" : "1.0.0"
+      }
+    },
+    {
       "identity" : "starscream",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/daltoniam/Starscream.git",
@@ -21,10 +30,10 @@
     {
       "identity" : "walletconnectswiftv2",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
+      "location" : "https://github.com/mewwallet/WalletConnectSwiftV2",
       "state" : {
-        "revision" : "c9b6e10e6572b5cec0e4086ecb87812035fb6225",
-        "version" : "1.2.0"
+        "branch" : "feature/wcsession_created",
+        "revision" : "ed7624807171c0625a8354b5ce994fc0fb5c8926"
       }
     }
   ],

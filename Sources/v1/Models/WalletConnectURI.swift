@@ -26,8 +26,8 @@ public struct WalletConnectURI: Equatable, Hashable {
     self.key = key
   }
   
-  public init(string: String) throws {
-    guard let components = Self.parseURIComponents(from: string) else { throw Error.invalidPairingURL }
+  public init(string: String?) throws {
+    guard let string, let components = Self.parseURIComponents(from: string) else { throw Error.invalidPairingURL }
     let query: [String: String]? = components.queryItems?.reduce(into: [:]) { $0[$1.name] = $1.value }
     
     guard let topic = components.user,

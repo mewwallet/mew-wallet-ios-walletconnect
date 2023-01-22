@@ -60,7 +60,7 @@ extension JSONRPC {
         let message = String(data: messageData, encoding: .utf8)
         self.method = .eth_sign(address: address, data: messageData, message: message)
         
-      case .eth_signTypeData:
+      case .eth_signTypedData:
         var params      = try container.nestedUnkeyedContainer(forKey: .params)
         guard params.count == 2 else { throw DecodingError.dataCorruptedError(forKey: CodingKeys.params, in: container, debugDescription: "Bad parameters") }
         
@@ -68,7 +68,7 @@ extension JSONRPC {
         let messageJSON = try params.decode(String.self)
         guard let data = messageJSON.data(using: .utf8) else { throw DecodingError.dataCorruptedError(forKey: CodingKeys.params, in: container, debugDescription: "Bad parameters") }
         let message = try JSONSerialization.jsonObject(with: data)
-        self.method = .eth_signTypeData(address: address, message: message)
+        self.method = .eth_signTypedData(address: address, message: message)
         
       case .eth_sendTransaction:
         let params      = try container.decode([JSONRPC.Request.Params.Transaction].self, forKey: .params)
@@ -96,7 +96,7 @@ extension JSONRPC {
         try container.encode(["0x" + data.toHexString(), address],  forKey: .params)
       case .eth_sign(let address, let data, _):
         try container.encode([address, "0x" + data.toHexString()],  forKey: .params)
-      case .eth_signTypeData(let address, let message):
+      case .eth_signTypedData(let address, let message):
         let data = try JSONSerialization.data(withJSONObject: message)
         guard let message = String(data: data, encoding: .utf8) else { throw EncodingError.invalidValue(message, .init(codingPath: [], debugDescription: "Can't encode data")) }
         try container.encode([address, message],                    forKey: .params)

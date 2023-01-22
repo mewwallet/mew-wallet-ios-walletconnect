@@ -11,7 +11,7 @@ public protocol SessionStorage {
   var sessions: [Session] { get }
   
   func add(_ session: Session)
-  func remove(_ session: Session)
+  func delete(_ session: Session, reason: Reason)
   func save()
 }
 

@@ -13,7 +13,7 @@ public struct Proposal {
     public let events: [String]
   }
   
-  public init(proposal: SessionProposal) {
+  public init(proposal: Session.Proposal) {
     self.proposerName = proposal.proposer.name
     self.proposerDescription = proposal.proposer.description
     self.proposerURL = proposal.proposer.url

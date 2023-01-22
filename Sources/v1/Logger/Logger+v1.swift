@@ -10,7 +10,7 @@ import Foundation
 import mew_wallet_ios_logger
 
 extension Logger.System {
-  public static var sessionManager = Logger.System.with(subsystem: "com.myetherwallet.mewwallet.walletconnect.v1", category: "session manager")
-  public static var networking     = Logger.System.with(subsystem: "com.myetherwallet.mewwallet.walletconnect.v1", category: "networking")
-  public static var provider       = Logger.System.with(subsystem: "com.myetherwallet.mewwallet.walletconnect.v1", category: "provider")
+  public static var sessionManager = Logger.System.with(subsystem: "com.myetherwallet.mewwallet.walletconnect.v1", category: "v1: session manager")
+  public static var networking     = Logger.System.with(subsystem: "com.myetherwallet.mewwallet.walletconnect.v1", category: "v1: networking")
+  public static var provider       = Logger.System.with(subsystem: "com.myetherwallet.mewwallet.walletconnect.v1", category: "v1: provider")
 }
