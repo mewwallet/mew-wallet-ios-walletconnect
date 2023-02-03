@@ -46,6 +46,7 @@ final class SessionManager {
     
     _network.messagePublisher
       .compactMap {[weak self] message in
+        debugPrint(">>>> \(message)")
         guard let session = self?.storage.session(with: message.topic) else { return nil }
         guard let payload = message.payload else { return nil }
         do {
@@ -56,6 +57,7 @@ final class SessionManager {
         }
       }
       .compactMap { (session: Session, data: Data) in
+        debugPrint(String(data: data, encoding: .utf8))
         do {
           let decoder = JSONDecoder()
           return (session, try decoder.decode(JSONRPC.Request.self, from: data))
@@ -76,6 +78,9 @@ final class SessionManager {
             self?.storage.delete(session, reason: reason)
             self?.sessionDeleteSubject.send((session.topic, reason))
             self?._network.disconnect(session: session)
+          } else {
+            session.update(with: update)
+            self?.storage.save()
           }
           return
         default:

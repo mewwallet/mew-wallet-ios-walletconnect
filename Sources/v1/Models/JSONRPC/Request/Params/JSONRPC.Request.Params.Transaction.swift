@@ -88,3 +88,11 @@ extension JSONRPC.Request.Params {
     }
   }
 }
+
+// MARK: - JSONRPC.Request.Params.Transaction.AccessListItem + Equatable
+
+extension JSONRPC.Request.Params.Transaction.AccessListItem: Equatable {}
+
+// MARK: - JSONRPC.Request.Params.Transaction + Equatable
+
+extension JSONRPC.Request.Params.Transaction: Equatable {}

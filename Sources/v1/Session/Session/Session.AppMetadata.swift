@@ -27,3 +27,7 @@ extension Session {
     }
   }
 }
+
+// MARK: - Session.AppMetadata + Equatable
+
+extension Session.AppMetadata: Equatable {}

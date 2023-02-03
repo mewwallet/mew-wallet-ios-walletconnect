@@ -13,3 +13,7 @@ public enum SessionProposal {
   case v1(request: WC1.Request, session: WC1.Session)
   case v2(proposal: WC2.Session.Proposal)
 }
+
+// MARK: - SessionProposal + Equatable
+
+extension SessionProposal: Equatable {}

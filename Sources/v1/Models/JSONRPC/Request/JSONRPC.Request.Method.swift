@@ -14,7 +14,7 @@ extension JSONRPC.Request {
 
     case eth_sign(address: String, data: Data, message: String?)
     case eth_personalSign(address: String, data: Data, message: String?)
-    case eth_signTypedData(address: String, message: Any)
+    case eth_signTypedData(address: String, message: AnyHashable)
     case eth_signTransaction(transaction: JSONRPC.Request.Params.Transaction)
     case eth_sendTransaction(transaction: JSONRPC.Request.Params.Transaction)
     
@@ -39,5 +39,32 @@ extension JSONRPC.Request {
     case eth_signTypedData    = "eth_signTypedData"
     case eth_signTransaction  = "eth_signTransaction"
     case eth_sendTransaction  = "eth_sendTransaction"
+  }
+}
+
+// MARK: - JSONRPC.Request.Method + Equatable
+
+extension JSONRPC.Request.Method: Equatable {
+  public static func == (lhs: JSONRPC.Request.Method, rhs: JSONRPC.Request.Method) -> Bool {
+    guard lhs._method == rhs._method else { return false }
+    switch (lhs, rhs) {
+    case (.wc_sessionRequest(let lhsRequest), .wc_sessionRequest(let rhsRequest)):
+      return lhsRequest == rhsRequest
+    case (.wc_sessionUpdate(let lhsUpdate), .wc_sessionUpdate(let rhsUpdate)):
+      return lhsUpdate == rhsUpdate
+    case (.eth_sign(let lhsAddress, let lhsData, let lhsMessage), .eth_sign(let rhsAddress, let rhsData, let rhsMessage)):
+      return lhsAddress == rhsAddress && lhsData == rhsData && lhsMessage == rhsMessage
+    case (.eth_personalSign(let lhsAddress, let lhsData, let lhsMessage), .eth_personalSign(let rhsAddress, let rhsData, let rhsMessage)):
+      return lhsAddress == rhsAddress && lhsData == rhsData && lhsMessage == rhsMessage
+    case (.eth_signTypedData(let lhsAddress, let lhsMessage), .eth_signTypedData(let rhsAddress, let rhsMessage)):
+      guard lhsAddress == rhsAddress else { return false }
+      return true
+    case (.eth_signTransaction(let lhsTransaction), .eth_signTransaction(let rhsTransaction)):
+      return lhsTransaction == rhsTransaction
+    case (.eth_sendTransaction(let lhsTransaction), .eth_sendTransaction(let rhsTransaction)):
+      return lhsTransaction == rhsTransaction
+    default:
+      return false
+    }
   }
 }

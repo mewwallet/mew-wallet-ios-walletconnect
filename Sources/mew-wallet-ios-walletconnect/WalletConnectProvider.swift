@@ -57,7 +57,7 @@ public final class WalletConnectProvider {
     switch request {
     case .v1(let request, let session):
       try await WC1.WalletConnectProvider.instance.approve(request: request, for: session, result: result)
-    case .v2(let request):
+    case .v2(let request, _):
       try await WC2.WalletConnectProvider.instance.approve(request: request, result: result)
     }
   }
@@ -66,7 +66,7 @@ public final class WalletConnectProvider {
     switch request {
     case .v1(let request, let session):
       try await WC1.WalletConnectProvider.instance.reject(request: request, for: session)
-    case .v2(let request):
+    case .v2(let request, _):
       try await WC2.WalletConnectProvider.instance.reject(request: request)
     }
   }
@@ -106,6 +106,17 @@ public final class WalletConnectProvider {
     case .v2(let proposal):
       try await WC2.WalletConnectProvider.instance.approve(proposal: proposal, accounts: accounts)
       
+    }
+  }
+  
+  public func update(session: Session, chainId: UInt64?, accounts: [String]) async throws {
+    switch session {
+    case .v1(let session):
+      try await WC1.WalletConnectProvider.instance.update(session: session, chainId: chainId, accounts: accounts)
+    case .v2(let session):
+      // TODO: Fixme
+      break
+//      try await WC2.WalletConnectProvider.instance.update(topic: <#T##String#>, namespaces: <#T##[String : SessionNamespace]#>)
     }
   }
   

@@ -67,7 +67,7 @@ extension JSONRPC {
         let address     = try params.decode(String.self)
         let messageJSON = try params.decode(String.self)
         guard let data = messageJSON.data(using: .utf8) else { throw DecodingError.dataCorruptedError(forKey: CodingKeys.params, in: container, debugDescription: "Bad parameters") }
-        let message = try JSONSerialization.jsonObject(with: data)
+        guard let message = try JSONSerialization.jsonObject(with: data) as? AnyHashable else { throw DecodingError.dataCorruptedError(forKey: CodingKeys.params, in: container, debugDescription: "Bad parameters") }
         self.method = .eth_signTypedData(address: address, message: message)
         
       case .eth_sendTransaction:
@@ -106,5 +106,13 @@ extension JSONRPC {
         try container.encode([transaction],                         forKey: .params)
       }
     }
+  }
+}
+
+// MARK: - JSONRPC.Request + Equatable
+
+extension JSONRPC.Request: Equatable {
+  public static func == (lhs: JSONRPC.Request, rhs: JSONRPC.Request) -> Bool {
+    return lhs.id == rhs.id && lhs.method == rhs.method
   }
 }

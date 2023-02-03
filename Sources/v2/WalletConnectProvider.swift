@@ -3,6 +3,7 @@ import WalletConnectSign
 import WalletConnectUtils
 import WalletConnectPairing
 import WalletConnectEcho
+import WalletConnectPush
 import Combine
 import Foundation
 import mew_wallet_ios_logger
@@ -30,15 +31,24 @@ public final class WalletConnectProvider {
   }
 
   public func configure(projectId: String, metadata: AppMetadata) {
+    Logger.System.provider.level(.debug)
+    
     Networking.configure(projectId: projectId, socketFactory: SocketFactory())
     Pair.configure(metadata: metadata)
     
     do {
       let clientId  = try Networking.interactor.getClientId()
       let sanitizedClientId = clientId.replacingOccurrences(of: "did:key:", with: "")
+      Logger.critical(.provider, "Client id: \(sanitizedClientId)")
       Echo.configure(projectId: projectId, clientId: sanitizedClientId)
     } catch {
       Logger.error(.provider, "Error: \(error)")
+    }
+    
+    do {
+      
+    } catch {
+      
     }
   }
   

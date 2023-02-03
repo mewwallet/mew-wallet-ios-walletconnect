@@ -42,6 +42,7 @@ public final class WalletConnectProvider {
     try manager.add(wcURL)
   }
   
+  // TODO: ChainID is here!
   public func approve<T: Codable>(request: JSONRPC.Request, for session: Session, result: T) async throws {
     switch request.method {
     case .wc_sessionRequest:
@@ -56,6 +57,7 @@ public final class WalletConnectProvider {
       let response = JSONRPC.Response(id: request.id, result: approve)
       do {
         try manager.send(message: response, for: session)
+        session.update(with: approve)
       } catch {
         Logger.error(.provider, "\(error)")
       }
@@ -78,6 +80,19 @@ public final class WalletConnectProvider {
     }
   }
   
+  public func update(session: Session, chainId: UInt64?, accounts: [String]) async throws {
+    let update = JSONRPC.Request.Params.SessionUpdate(approved: true,
+                                                      chainId: chainId ?? session.chainId,
+                                                      accounts: accounts.isEmpty ? nil : accounts)
+    let request = JSONRPC.Request(method: .wc_sessionUpdate(update: update))
+    do {
+      try manager.send(message: request, for: session)
+      session.update(with: update)
+    } catch {
+      Logger.error(.provider, error)
+    }
+  }
+  
   public func disconnect(session: Session) async throws {
     let update = JSONRPC.Request.Params.SessionUpdate(
       approved: false,
@@ -95,3 +110,10 @@ public final class WalletConnectProvider {
   }
 }
 
+//{
+//  "bridge": "https://7.bridge.walletconnect.org/subscribe",
+//  "token": "c393da0919d676196518ea2af91139ceac192326aee059bf91d7886f5981ce12",
+//  "platform": "IOS",
+//  "topic": "6F64CF9F-C634-4E03-ABB1-3F2278CDDFE8",
+//  "language": "en_US"
+//}

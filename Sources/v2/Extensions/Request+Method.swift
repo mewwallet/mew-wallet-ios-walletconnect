@@ -46,7 +46,9 @@ extension Request {
         guard let data = messageJSON.data(using: .utf8) else {
           return .raw(method: method, params: self.params.stringRepresentation)
         }
-        let message = try JSONSerialization.jsonObject(with: data)
+        guard let message = try JSONSerialization.jsonObject(with: data) as? AnyHashable else {
+          return .raw(method: method, params: self.params.stringRepresentation)
+        }
         return .eth_signTypedData(address: address, message: message)
         
       case "eth_signTransaction":

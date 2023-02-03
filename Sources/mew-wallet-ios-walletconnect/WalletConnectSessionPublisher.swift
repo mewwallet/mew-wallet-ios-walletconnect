@@ -31,7 +31,10 @@ public final class WalletConnectSessionPublisher {
       .map { Request.v1(request: $0, session: $1) }
     
     let v2 = WC2.WalletConnectProvider.instance.events.sessionRequest
-      .map { Request.v2(request: $0) }
+      .compactMap { request -> Request? in
+        guard let session = WC2.WalletConnectProvider.instance.sessions.first(where: { $0.topic == request.topic }) else { return nil }
+        return Request.v2(request: request, session: session)
+      }
     
     return Publishers.Merge(v1, v2)
       .receive(on: DispatchQueue.main)
