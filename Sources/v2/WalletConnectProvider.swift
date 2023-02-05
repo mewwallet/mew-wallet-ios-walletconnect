@@ -23,6 +23,8 @@ public final class WalletConnectProvider {
     Sign.instance.getSessions()
   }
   
+  private var publishers = [AnyCancellable]()
+  
   /// Query pending requests
   /// - Returns: Pending requests received from peer with `wc_sessionRequest` protocol method
   /// - Parameter topic: topic representing session for which you want to get pending requests. If nil, you will receive pending requests for all active sessions.
@@ -39,16 +41,24 @@ public final class WalletConnectProvider {
     do {
       let clientId  = try Networking.interactor.getClientId()
       let sanitizedClientId = clientId.replacingOccurrences(of: "did:key:", with: "")
-      Logger.critical(.provider, "Client id: \(sanitizedClientId)")
-      Echo.configure(projectId: projectId, clientId: sanitizedClientId)
+      
+      Push.configure()
+      Push.wallet.requestPublisher.sink { (id: RPCID, account: Account, metadata: AppMetadata) in
+//        Task(priority: .high) {
+////          try! await Push.wallet.approve(id: id)
+//        }
+        debugPrint(">>> something! \(id) - \(account)")
+      }.store(in: &publishers)
+      
+      Push.wallet.pushMessagePublisher.sink { pm in
+////        print(pm)
+        debugPrint(">>> something 2 - \(pm)")
+      }.store(in: &publishers)
+      
+//      Logger.critical(.provider, "Client id: \(sanitizedClientId)")
+//      Echo.configure(projectId: projectId, clientId: sanitizedClientId)
     } catch {
       Logger.error(.provider, "Error: \(error)")
-    }
-    
-    do {
-      
-    } catch {
-      
     }
   }
   
@@ -98,18 +108,9 @@ public final class WalletConnectProvider {
         proposalNamespace.chains.compactMap { Account($0.absoluteString + ":\(account)") }
       })
       
-      let extensions: [SessionNamespace.Extension]? = proposalNamespace.extensions?.map { element in
-        let accounts = Set(accounts.flatMap { account in
-          element.chains.compactMap { Account($0.absoluteString + ":\(account)") }
-        })
-        return SessionNamespace.Extension(accounts: accounts, methods: element.methods, events: element.events)
-      }
-      let sessionNamespace = SessionNamespace(
-        accounts: accounts,
-        methods: proposalNamespace.methods,
-        events: proposalNamespace.events,
-        extensions: extensions
-      )
+      let sessionNamespace = SessionNamespace(accounts: accounts, methods: proposalNamespace.methods, events: proposalNamespace.events)
+      sessionNamespaces[caip2Namespace] = sessionNamespace
+      
       sessionNamespaces[caip2Namespace] = sessionNamespace
     }
     try await approve(proposalId: proposal.id, namespaces: sessionNamespaces)
@@ -158,5 +159,15 @@ public final class WalletConnectProvider {
   ///   - session: Session that you want to delete
   public func disconnect(session: Session) async throws {
     try await Sign.instance.disconnect(topic: session.topic)
+  }
+  
+  public func register(pushToken token: Data) {
+    Task(priority: .userInitiated) {
+      do {
+        try await Push.wallet.register(deviceToken: token)
+      } catch {
+        debugPrint("Huh? \(error)")
+      }
+    }
   }
 }
