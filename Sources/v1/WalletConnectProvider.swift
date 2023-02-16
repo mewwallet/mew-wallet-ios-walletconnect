@@ -131,11 +131,3 @@ public final class WalletConnectProvider {
     }
   }
 }
-
-//{
-//  "bridge": "https://7.bridge.walletconnect.org/subscribe",
-//  "token": "c393da0919d676196518ea2af91139ceac192326aee059bf91d7886f5981ce12",
-//  "platform": "IOS",
-//  "topic": "6F64CF9F-C634-4E03-ABB1-3F2278CDDFE8",
-//  "language": "en_US"
-//}

@@ -38,9 +38,9 @@ public final class WalletConnectProvider {
     Networking.configure(projectId: projectId, socketFactory: SocketFactory())
     Pair.configure(metadata: metadata)
     
-    do {
-      let clientId  = try Networking.interactor.getClientId()
-      let sanitizedClientId = clientId.replacingOccurrences(of: "did:key:", with: "")
+//    do {
+//      let clientId  = try Networking.interactor.getClientId()
+//      let sanitizedClientId = clientId.replacingOccurrences(of: "did:key:", with: "")
       
       Push.configure()
 //      Push.wallet.requestPublisher.sink { (id: RPCID, account: Account, metadata: AppMetadata) in
@@ -51,9 +51,9 @@ public final class WalletConnectProvider {
       
 //      Logger.critical(.provider, "Client id: \(sanitizedClientId)")
 //      Echo.configure(projectId: projectId, clientId: sanitizedClientId)
-    } catch {
-      Logger.error(.provider, "Error: \(error)")
-    }
+//    } catch {
+//      Logger.error(.provider, "Error: \(error)")
+//    }
   }
   
   /// For wallet to establish a pairing
@@ -185,7 +185,7 @@ public final class WalletConnectProvider {
       do {
         try await Push.wallet.register(deviceToken: token)
       } catch {
-        debugPrint("Huh? \(error)")
+        Logger.error(.provider, "Error: \(error)")
       }
     }
   }
