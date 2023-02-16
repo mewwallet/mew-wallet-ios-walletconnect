@@ -43,17 +43,11 @@ public final class WalletConnectProvider {
       let sanitizedClientId = clientId.replacingOccurrences(of: "did:key:", with: "")
       
       Push.configure()
-      Push.wallet.requestPublisher.sink { (id: RPCID, account: Account, metadata: AppMetadata) in
-//        Task(priority: .high) {
-////          try! await Push.wallet.approve(id: id)
-//        }
-        debugPrint(">>> something! \(id) - \(account)")
-      }.store(in: &publishers)
+//      Push.wallet.requestPublisher.sink { (id: RPCID, account: Account, metadata: AppMetadata) in
+//      }.store(in: &publishers)
       
-      Push.wallet.pushMessagePublisher.sink { pm in
-////        print(pm)
-        debugPrint(">>> something 2 - \(pm)")
-      }.store(in: &publishers)
+//      Push.wallet.pushMessagePublisher.sink { pm in
+//      }.store(in: &publishers)
       
 //      Logger.critical(.provider, "Client id: \(sanitizedClientId)")
 //      Echo.configure(projectId: projectId, clientId: sanitizedClientId)
@@ -105,7 +99,7 @@ public final class WalletConnectProvider {
       let caip2Namespace = $0.key
       let proposalNamespace = $0.value
       let accounts = Set(accounts.flatMap { account in
-        proposalNamespace.chains.compactMap { Account($0.absoluteString + ":\(account)") }
+        proposalNamespace.chains.compactMap { Account(chainIdentifier: $0.absoluteString, address: account) }
       })
       
       let sessionNamespace = SessionNamespace(accounts: accounts, methods: proposalNamespace.methods, events: proposalNamespace.events)
@@ -130,6 +124,31 @@ public final class WalletConnectProvider {
   ///   - namespaces: Dictionary of namespaces that will replace existing ones.
   public func update(topic: String, namespaces: [String: SessionNamespace]) async throws {
     try await Sign.instance.update(topic: topic, namespaces: namespaces)
+  }
+  
+  public func update(session: Session, chainId: UInt64?, accounts: [String]) async throws {
+    var sessionNamespaces = [String: SessionNamespace]()
+    session.namespaces.forEach {
+      let caip2Namespace = $0.key
+      let proposalNamespace = $0.value
+      let accounts = Set(
+        proposalNamespace.accounts.flatMap({ namespace in
+          accounts.compactMap { address in
+            var blockchain = namespace.blockchain
+            if let chainId {
+              blockchain = Blockchain(namespace: blockchain.namespace, reference: "\(chainId)") ?? blockchain
+            }
+            return Account(chainIdentifier: blockchain.absoluteString, address: address)
+          }
+        })
+      )
+      
+      let sessionNamespace = SessionNamespace(accounts: accounts, methods: proposalNamespace.methods, events: proposalNamespace.events)
+      sessionNamespaces[caip2Namespace] = sessionNamespace
+      
+      sessionNamespaces[caip2Namespace] = sessionNamespace
+    }
+    try await Sign.instance.update(topic: session.topic, namespaces: sessionNamespaces)
   }
   
   /// For the wallet to reject a session proposal.

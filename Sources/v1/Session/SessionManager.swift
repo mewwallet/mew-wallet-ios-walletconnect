@@ -48,7 +48,6 @@ final class SessionManager {
     
     _network.messagePublisher
       .compactMap {[weak self] message in
-        debugPrint(">>>> \(message)")
         guard let session = self?.storage.session(with: message.topic) else { return nil }
         guard let payload = message.payload else { return nil }
         do {

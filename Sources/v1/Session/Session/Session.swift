@@ -15,7 +15,7 @@ public final class Session {
   public let uuid: String
   var topic: String { _uri.topic }
   var peerId: String? { _peerId }
-  var bridge: URL { _uri.bridge }
+  public var bridge: URL { _uri.bridge }
   public var metadata: AppMetadata?
   public var chainId: UInt64 = 1
   public var accounts: [String] = []

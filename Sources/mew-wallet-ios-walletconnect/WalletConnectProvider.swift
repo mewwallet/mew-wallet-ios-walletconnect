@@ -128,9 +128,8 @@ public final class WalletConnectProvider {
     case .v1(let session):
       try await WC1.WalletConnectProvider.instance.update(session: session, chainId: chainId, accounts: accounts)
     case .v2(let session):
-      // TODO: Fixme
+      try await WC2.WalletConnectProvider.instance.update(session: session, chainId: chainId, accounts: accounts)
       break
-//      try await WC2.WalletConnectProvider.instance.update(topic: <#T##String#>, namespaces: <#T##[String : SessionNamespace]#>)
     }
   }
   
