@@ -24,4 +24,8 @@ public final class WalletConnectSessionPublisher {
   public var sessionDelete: AnyPublisher<(String, Reason), Never> {
     return WalletConnectProvider.instance.manager.sessionDeletePublisher
   }
+  
+  public var sessionsUpdate: AnyPublisher<Void, Never> {
+    return WalletConnectProvider.instance.manager.sessionsUpdatePublisher
+  }
 }

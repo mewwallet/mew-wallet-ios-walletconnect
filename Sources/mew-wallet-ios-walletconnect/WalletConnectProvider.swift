@@ -45,6 +45,20 @@ public final class WalletConnectProvider {
     }
   }
   
+  public func cancel(url: String?) async throws {
+    guard let url else { return }
+    do {
+      // TODO: v2
+      throw WalletConnectServiceError.invalidPairingURL
+    } catch WalletConnectServiceError.invalidPairingURL {
+      do {
+        try await WC1.WalletConnectProvider.instance.cancelPair(url: url)
+      } catch {
+        throw error
+      }
+    }
+  }
+  
   public func configure(projectId: String, metadata: WC2.AppMetadata, storage: WC1.SessionStorage) {
     // Configure v2
     WC2.WalletConnectProvider.instance.configure(projectId: projectId, metadata: metadata)
@@ -93,16 +107,16 @@ public final class WalletConnectProvider {
   public func reject(proposal: SessionProposal, reason: RejectionReason) async throws {
     switch proposal {
     case .v1(let request, let session):
-      try await WC1.WalletConnectProvider.instance.reject(request: request, for: session)
+      try await WC1.WalletConnectProvider.instance.reject(proposal: request, for: session)
     case .v2(let proposal):
       try await WC2.WalletConnectProvider.instance.reject(proposalId: proposal.id, reason: reason)
     }
   }
   
-  public func approve(proposal: SessionProposal, accounts: [String]) async throws {
+  public func approve(proposal: SessionProposal, accounts: [String], chainId: UInt64) async throws {
     switch proposal {
     case .v1(let request, let session):
-      try await WC1.WalletConnectProvider.instance.approve(request: request, for: session, result: accounts)
+      try await WC1.WalletConnectProvider.instance.approve(proposal: request, for: session, result: accounts, chainId: chainId)
     case .v2(let proposal):
       try await WC2.WalletConnectProvider.instance.approve(proposal: proposal, accounts: accounts)
       

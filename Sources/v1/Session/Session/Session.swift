@@ -17,7 +17,7 @@ public final class Session {
   var peerId: String? { _peerId }
   var bridge: URL { _uri.bridge }
   public var metadata: AppMetadata?
-  public var chainId: UInt64?
+  public var chainId: UInt64 = 1
   public var accounts: [String] = []
   
   public init(uri: WalletConnectURI, uuid: String = UUID().uuidString, created: Date = Date()) {
@@ -86,7 +86,7 @@ extension Session: Codable {
     self.init(uri: uri, uuid: uuid, created: created ?? Date())
     _peerId         = try container.decodeIfPresent(String.self,        forKey: .peerId)
     metadata        = try container.decodeIfPresent(AppMetadata.self,   forKey: .metadata)
-    chainId         = try container.decodeIfPresent(UInt64.self,        forKey: .chainId)
+    chainId         = try container.decodeIfPresent(UInt64.self,        forKey: .chainId) ?? 1
     accounts        = try container.decodeIfPresent([String].self,      forKey: .accounts) ?? []
   }
   
@@ -97,7 +97,7 @@ extension Session: Codable {
     try container.encodeIfPresent(_peerId,    forKey: .peerId)
     try container.encodeIfPresent(metadata,   forKey: .metadata)
     try container.encode(created,             forKey: .created)
-    try container.encodeIfPresent(chainId,    forKey: .chainId)
+    try container.encode(chainId,             forKey: .chainId)
     try container.encode(accounts,            forKey: .accounts)
   }
   

@@ -16,10 +16,12 @@ final class SessionManager {
   private let sessionProposalSubject = PassthroughSubject<(JSONRPC.Request, Session), Never>()
   private let requestSubject = PassthroughSubject<(JSONRPC.Request, Session), Never>()
   private let sessionDeleteSubject = PassthroughSubject<(String, Reason), Never>()
+  private let sessionsUpdateSubject = PassthroughSubject<Void, Never>()
   
   var sessionProposalPublisher: AnyPublisher<(JSONRPC.Request, Session), Never> { sessionProposalSubject.eraseToAnyPublisher() }
   var requestPublisher: AnyPublisher<(JSONRPC.Request, Session), Never> { requestSubject.eraseToAnyPublisher() }
   var sessionDeletePublisher: AnyPublisher<(String, Reason), Never> { sessionDeleteSubject.eraseToAnyPublisher() }
+  var sessionsUpdatePublisher: AnyPublisher<Void, Never> { sessionsUpdateSubject.eraseToAnyPublisher() }
   
   internal var storage: SessionStorage {
     guard let _storage else {
@@ -57,7 +59,6 @@ final class SessionManager {
         }
       }
       .compactMap { (session: Session, data: Data) in
-        debugPrint(String(data: data, encoding: .utf8))
         do {
           let decoder = JSONDecoder()
           return (session, try decoder.decode(JSONRPC.Request.self, from: data))
@@ -71,16 +72,19 @@ final class SessionManager {
         case .wc_sessionRequest(let proposal):
           session.update(with: proposal)
           self?.storage.save()
+          self?.sessionsUpdateSubject.send(())
           self?.sessionProposalSubject.send((request, session))
         case .wc_sessionUpdate(let update):
           if !update.approved {
             let reason = JSONRPC.Error.disconnected
             self?.storage.delete(session, reason: reason)
+            self?.sessionsUpdateSubject.send(())
             self?.sessionDeleteSubject.send((session.topic, reason))
             self?._network.disconnect(session: session)
           } else {
             session.update(with: update)
             self?.storage.save()
+            self?.sessionsUpdateSubject.send(())
           }
           return
         default:
@@ -104,14 +108,29 @@ final class SessionManager {
     let session = Session(uri: uri)
     guard !self.storage.contains(session) else { throw WalletConnectProvider.Error.sessionExist }
     self.storage.add(session)
+    sessionsUpdateSubject.send(())
     Task(priority: .high) {[weak self] in
       self?._network.connect(session)
     }
   }
   
+  func cancel(_ uri: WalletConnectURI) throws {
+    let session = Session(uri: uri)
+    let reason = JSONRPC.Error.rejected
+    self.storage.delete(session, reason: reason)
+    sessionsUpdateSubject.send(())
+    self.sessionDeleteSubject.send((session.topic, reason))
+  }
+  
+  func update(session: Session) {
+    self.storage.save()
+    sessionsUpdateSubject.send(())
+  }
+  
   func disconnect(session: Session) {
     let reason = JSONRPC.Error.disconnected
     self.storage.delete(session, reason: reason)
+    sessionsUpdateSubject.send(())
     self.sessionDeleteSubject.send((session.topic, reason))
   }
   

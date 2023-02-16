@@ -52,4 +52,20 @@ public final class WalletConnectSessionPublisher {
       .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
   }
+  
+  public var sessionsUpdate: AnyPublisher<Void, Never> {
+    let v1 = WC1.WalletConnectProvider.instance.events.sessionsUpdate
+    
+    let v2 = Publishers.Merge4(
+      WC2.WalletConnectProvider.instance.events.sessionProposal.map { _ in },
+      WC2.WalletConnectProvider.instance.events.sessionSettle.map { _ in },
+      WC2.WalletConnectProvider.instance.events.sessionDelete.map { _ in },
+      WC2.WalletConnectProvider.instance.events.sessionUpdate.map { _ in }
+    )
+    
+    return Publishers.Merge(v1, v2)
+      .map { _ in }
+      .receive(on: DispatchQueue.main)
+      .eraseToAnyPublisher()
+  }
 }

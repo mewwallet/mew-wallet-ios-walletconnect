@@ -12,5 +12,6 @@ extension WalletConnectProvider {
     case badServerResponse
     case badResult
     case sessionExist
+    case badRequest
   }
 }
