@@ -32,8 +32,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mewwallet/WalletConnectSwiftV2",
       "state" : {
-        "branch" : "feature/wcsession_created",
-        "revision" : "ed7624807171c0625a8354b5ce994fc0fb5c8926"
+        "revision" : "516a32e73c9f819ba76ee4206fdb26820dd68b81"
       }
     }
   ],
