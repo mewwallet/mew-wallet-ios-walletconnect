@@ -1,0 +1,41 @@
+{
+  "pins" : [
+    {
+      "identity" : "cryptoswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/krzyzanowskim/CryptoSwift",
+      "state" : {
+        "revision" : "19b3c3ceed117c5cc883517c4e658548315ba70b",
+        "version" : "1.6.0"
+      }
+    },
+    {
+      "identity" : "mew-wallet-ios-logger",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:mewwallet/mew-wallet-ios-logger.git",
+      "state" : {
+        "revision" : "fab448eb8e7f3552b5423996d5a060f6a3d94f4c",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "starscream",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/daltoniam/Starscream.git",
+      "state" : {
+        "revision" : "df8d82047f6654d8e4b655d1b1525c64e1059d21",
+        "version" : "4.0.4"
+      }
+    },
+    {
+      "identity" : "walletconnectswiftv2",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mewwallet/WalletConnectSwiftV2",
+      "state" : {
+        "branch" : "feature/wcsession_created",
+        "revision" : "ed7624807171c0625a8354b5ce994fc0fb5c8926"
+      }
+    }
+  ],
+  "version" : 2
+}
