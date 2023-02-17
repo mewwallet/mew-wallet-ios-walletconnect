@@ -33,3 +33,7 @@ extension JSONRPC {
     }
   }
 }
+
+// MARK: - JSONRPC.ID + Equatable
+
+extension JSONRPC.ID: Equatable {}

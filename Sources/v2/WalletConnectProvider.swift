@@ -3,6 +3,7 @@ import WalletConnectSign
 import WalletConnectUtils
 import WalletConnectPairing
 import WalletConnectEcho
+import WalletConnectPush
 import Combine
 import Foundation
 import mew_wallet_ios_logger
@@ -22,6 +23,8 @@ public final class WalletConnectProvider {
     Sign.instance.getSessions()
   }
   
+  private var publishers = [AnyCancellable]()
+  
   /// Query pending requests
   /// - Returns: Pending requests received from peer with `wc_sessionRequest` protocol method
   /// - Parameter topic: topic representing session for which you want to get pending requests. If nil, you will receive pending requests for all active sessions.
@@ -30,16 +33,27 @@ public final class WalletConnectProvider {
   }
 
   public func configure(projectId: String, metadata: AppMetadata) {
+    Logger.System.provider.level(.debug)
+    
     Networking.configure(projectId: projectId, socketFactory: SocketFactory())
     Pair.configure(metadata: metadata)
     
-    do {
-      let clientId  = try Networking.interactor.getClientId()
-      let sanitizedClientId = clientId.replacingOccurrences(of: "did:key:", with: "")
-      Echo.configure(projectId: projectId, clientId: sanitizedClientId)
-    } catch {
-      Logger.error(.provider, "Error: \(error)")
-    }
+//    do {
+//      let clientId  = try Networking.interactor.getClientId()
+//      let sanitizedClientId = clientId.replacingOccurrences(of: "did:key:", with: "")
+      
+      Push.configure()
+//      Push.wallet.requestPublisher.sink { (id: RPCID, account: Account, metadata: AppMetadata) in
+//      }.store(in: &publishers)
+      
+//      Push.wallet.pushMessagePublisher.sink { pm in
+//      }.store(in: &publishers)
+      
+//      Logger.critical(.provider, "Client id: \(sanitizedClientId)")
+//      Echo.configure(projectId: projectId, clientId: sanitizedClientId)
+//    } catch {
+//      Logger.error(.provider, "Error: \(error)")
+//    }
   }
   
   /// For wallet to establish a pairing
@@ -85,21 +99,12 @@ public final class WalletConnectProvider {
       let caip2Namespace = $0.key
       let proposalNamespace = $0.value
       let accounts = Set(accounts.flatMap { account in
-        proposalNamespace.chains.compactMap { Account($0.absoluteString + ":\(account)") }
+        proposalNamespace.chains.compactMap { Account(chainIdentifier: $0.absoluteString, address: account) }
       })
       
-      let extensions: [SessionNamespace.Extension]? = proposalNamespace.extensions?.map { element in
-        let accounts = Set(accounts.flatMap { account in
-          element.chains.compactMap { Account($0.absoluteString + ":\(account)") }
-        })
-        return SessionNamespace.Extension(accounts: accounts, methods: element.methods, events: element.events)
-      }
-      let sessionNamespace = SessionNamespace(
-        accounts: accounts,
-        methods: proposalNamespace.methods,
-        events: proposalNamespace.events,
-        extensions: extensions
-      )
+      let sessionNamespace = SessionNamespace(accounts: accounts, methods: proposalNamespace.methods, events: proposalNamespace.events)
+      sessionNamespaces[caip2Namespace] = sessionNamespace
+      
       sessionNamespaces[caip2Namespace] = sessionNamespace
     }
     try await approve(proposalId: proposal.id, namespaces: sessionNamespaces)
@@ -119,6 +124,31 @@ public final class WalletConnectProvider {
   ///   - namespaces: Dictionary of namespaces that will replace existing ones.
   public func update(topic: String, namespaces: [String: SessionNamespace]) async throws {
     try await Sign.instance.update(topic: topic, namespaces: namespaces)
+  }
+  
+  public func update(session: Session, chainId: UInt64?, accounts: [String]) async throws {
+    var sessionNamespaces = [String: SessionNamespace]()
+    session.namespaces.forEach {
+      let caip2Namespace = $0.key
+      let proposalNamespace = $0.value
+      let accounts = Set(
+        proposalNamespace.accounts.flatMap({ namespace in
+          accounts.compactMap { address in
+            var blockchain = namespace.blockchain
+            if let chainId {
+              blockchain = Blockchain(namespace: blockchain.namespace, reference: "\(chainId)") ?? blockchain
+            }
+            return Account(chainIdentifier: blockchain.absoluteString, address: address)
+          }
+        })
+      )
+      
+      let sessionNamespace = SessionNamespace(accounts: accounts, methods: proposalNamespace.methods, events: proposalNamespace.events)
+      sessionNamespaces[caip2Namespace] = sessionNamespace
+      
+      sessionNamespaces[caip2Namespace] = sessionNamespace
+    }
+    try await Sign.instance.update(topic: session.topic, namespaces: sessionNamespaces)
   }
   
   /// For the wallet to reject a session proposal.
@@ -148,5 +178,15 @@ public final class WalletConnectProvider {
   ///   - session: Session that you want to delete
   public func disconnect(session: Session) async throws {
     try await Sign.instance.disconnect(topic: session.topic)
+  }
+  
+  public func register(pushToken token: Data) {
+    Task(priority: .userInitiated) {
+      do {
+        try await Push.wallet.register(deviceToken: token)
+      } catch {
+        Logger.error(.provider, "Error: \(error)")
+      }
+    }
   }
 }

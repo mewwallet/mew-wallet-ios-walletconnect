@@ -51,6 +51,7 @@ let package = Package(
         .product(name: "WalletConnect", package: "WalletConnectSwiftV2"),
         .product(name: "WalletConnectNetworking", package: "WalletConnectSwiftV2"),
         .product(name: "WalletConnectEcho", package: "WalletConnectSwiftV2"),
+        .product(name: "WalletConnectPush", package: "WalletConnectSwiftV2"),
         .product(name: "Starscream", package: "Starscream")
       ],
       path: "Sources/v2"),

@@ -42,23 +42,16 @@ public final class WalletConnectProvider {
     try manager.add(wcURL)
   }
   
+  public func cancelPair(url: String) async throws {
+    let wcURL = try WalletConnectURI(string: url)
+    try manager.cancel(wcURL)
+  }
+  
+  // TODO: ChainID is here!
   public func approve<T: Codable>(request: JSONRPC.Request, for session: Session, result: T) async throws {
     switch request.method {
     case .wc_sessionRequest:
-      guard let result = result as? [String] else { throw WalletConnectProvider.Error.badResult }
-      let approve = JSONRPC.ApproveSession(
-        approved: true,
-        chainId: 1,
-        accounts: result,
-        peerId: session.uuid,
-        peerMeta: self.metadata
-      )
-      let response = JSONRPC.Response(id: request.id, result: approve)
-      do {
-        try manager.send(message: response, for: session)
-      } catch {
-        Logger.error(.provider, "\(error)")
-      }
+      throw WalletConnectProvider.Error.badRequest
     default:
       let response = JSONRPC.Response(id: request.id, result: result)
       do {
@@ -69,10 +62,54 @@ public final class WalletConnectProvider {
     }
   }
   
+  public func approve<T: Codable>(proposal: JSONRPC.Request, for session: Session, result: T, chainId: UInt64) async throws {
+    guard case .wc_sessionRequest = proposal.method else { throw WalletConnectProvider.Error.badResult }
+    guard let result = result as? [String] else { throw WalletConnectProvider.Error.badResult }
+    let approve = JSONRPC.ApproveSession(
+      approved: true,
+      chainId: chainId,
+      accounts: result,
+      peerId: session.uuid,
+      peerMeta: self.metadata
+    )
+    let response = JSONRPC.Response(id: proposal.id, result: approve)
+    do {
+      try manager.send(message: response, for: session)
+      session.update(with: approve)
+      manager.update(session: session)
+    } catch {
+      Logger.error(.provider, "\(error)")
+    }
+  }
+  
+  public func reject(proposal: JSONRPC.Request, for session: Session) async throws {
+    let response = JSONRPC.Response<Int>(id: proposal.id, error: .rejected)
+    do {
+      try manager.send(message: response, for: session)
+      manager.disconnect(session: session)
+    } catch {
+      Logger.error(.provider, error)
+    }
+  }
+  
   public func reject(request: JSONRPC.Request, for session: Session) async throws {
     let response = JSONRPC.Response<Int>(id: request.id, error: .rejected)
     do {
       try manager.send(message: response, for: session)
+    } catch {
+      Logger.error(.provider, error)
+    }
+  }
+  
+  public func update(session: Session, chainId: UInt64?, accounts: [String]) async throws {
+    let update = JSONRPC.Request.Params.SessionUpdate(approved: true,
+                                                      chainId: chainId ?? session.chainId,
+                                                      accounts: accounts.isEmpty ? session.accounts : accounts)
+    let request = JSONRPC.Request(method: .wc_sessionUpdate(update: update))
+    do {
+      try manager.send(message: request, for: session)
+      session.update(with: update)
+      manager.update(session: session)
     } catch {
       Logger.error(.provider, error)
     }
@@ -94,4 +131,3 @@ public final class WalletConnectProvider {
     }
   }
 }
-

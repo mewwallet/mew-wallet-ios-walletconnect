@@ -11,7 +11,7 @@ extension Request {
   public enum Method {
     case eth_sign(address: String, data: Data, message: String?)
     case eth_personalSign(address: String, data: Data, message: String?)
-    case eth_signTypedData(address: String, message: Any)
+    case eth_signTypedData(address: String, message: AnyHashable)
     case eth_signTransaction(transaction: Request.Params.Transaction)
     case eth_sendTransaction(transaction: Request.Params.Transaction)
     case raw(method: String, params: String)

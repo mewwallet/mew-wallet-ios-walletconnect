@@ -10,7 +10,7 @@ import Foundation
 extension JSONRPC {
   struct ApproveSession: Codable {
     public let approved: Bool
-    public let chainId: Int
+    public let chainId: UInt64
     public let accounts: [String]
     
     public let peerId: String?
