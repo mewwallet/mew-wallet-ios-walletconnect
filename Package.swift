@@ -21,7 +21,7 @@ let package = Package(
       targets: ["mew-wallet-ios-walletconnect-v2"])
   ],
   dependencies: [
-    .package(url: "https://github.com/mewwallet/WalletConnectSwiftV2", branch: "feature/wcsession_created"),
+    .package(url: "https://github.com/mewwallet/WalletConnectSwiftV2", exact: "1.3.1"),
     .package(url: "https://github.com/krzyzanowskim/CryptoSwift", from: "1.4.0"),
     .package(url: "https://github.com/daltoniam/Starscream", from: "4.0.0"),
     .package(url: "git@github.com:mewwallet/mew-wallet-ios-logger.git", .upToNextMajor(from: "1.0.0"))
