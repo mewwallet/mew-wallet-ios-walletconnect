@@ -57,8 +57,7 @@ extension JSONRPC.Request.Method: Equatable {
     case (.eth_personalSign(let lhsAddress, let lhsData, let lhsMessage), .eth_personalSign(let rhsAddress, let rhsData, let rhsMessage)):
       return lhsAddress == rhsAddress && lhsData == rhsData && lhsMessage == rhsMessage
     case (.eth_signTypedData(let lhsAddress, let lhsMessage), .eth_signTypedData(let rhsAddress, let rhsMessage)):
-      guard lhsAddress == rhsAddress else { return false }
-      return true
+      return lhsAddress == rhsAddress && lhsMessage == rhsMessage
     case (.eth_signTransaction(let lhsTransaction), .eth_signTransaction(let rhsTransaction)):
       return lhsTransaction == rhsTransaction
     case (.eth_sendTransaction(let lhsTransaction), .eth_sendTransaction(let rhsTransaction)):
