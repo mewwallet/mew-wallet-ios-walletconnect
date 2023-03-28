@@ -33,16 +33,20 @@ public final class WalletConnectProvider {
   }
 
   public func configure(projectId: String, metadata: AppMetadata) {
-    Logger.System.provider.level(.debug)
-    
     Networking.configure(projectId: projectId, socketFactory: SocketFactory())
     Pair.configure(metadata: metadata)
+    
+    // FIXME: For now we're not supporting WC2 push notifications
     
 //    do {
 //      let clientId  = try Networking.interactor.getClientId()
 //      let sanitizedClientId = clientId.replacingOccurrences(of: "did:key:", with: "")
-      
-      Push.configure()
+//      
+//    #if DEBUG
+//    Push.configure(environment: .sandbox)
+//    #else
+//    Push.configure(environment: .production)
+//    #endif
 //      Push.wallet.requestPublisher.sink { (id: RPCID, account: Account, metadata: AppMetadata) in
 //      }.store(in: &publishers)
       
@@ -98,8 +102,9 @@ public final class WalletConnectProvider {
     proposal.requiredNamespaces.forEach {
       let caip2Namespace = $0.key
       let proposalNamespace = $0.value
+      let chains = proposalNamespace.chains ?? Set<Blockchain>()
       let accounts = Set(accounts.flatMap { account in
-        proposalNamespace.chains.compactMap { Account(chainIdentifier: $0.absoluteString, address: account) }
+        chains.compactMap { Account(chainIdentifier: $0.absoluteString, address: account) }
       })
       
       let sessionNamespace = SessionNamespace(accounts: accounts, methods: proposalNamespace.methods, events: proposalNamespace.events)

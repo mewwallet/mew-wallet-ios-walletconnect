@@ -90,7 +90,7 @@ extension NetworkingInteractor {
         case .text(let text):   self?._process(socket: socket, message: text)
         case .ping:             socket.write(pong: Data())
         default:
-          Logger.debug(system: .networking, "Event: \(event)")
+          Logger.debug(.networking, "Event: \(event)")
         }
       }
       status = .connecting
