@@ -4,7 +4,7 @@ Package that allows to support WalletConnect v1 and v2.
 
 1. WC1 only: There's no built-in session storage for sessions. App must implement that. **For example only**:
 
-```
+```swift
 final class Storage: WC1.SessionStorage {
   var sessions: [WC1.Session] = []
   
@@ -51,14 +51,19 @@ final class Storage: WC1.SessionStorage {
 
 2. Configuration:
 
-```
+```swift
+import mew_wallet_ios_walletconnect
+
 let metadata = WC2.AppMetadata(name: "Wallet", description: "Description", url: "https://URL", icons: [])
 WalletConnectProvider.instance.configure(projectId: "PROJECT_ID_FROM_WC_CLOUD", metadata: metadata, storage: storage)
 ```
 
 3. Handling proposals:
 
-```
+```swift
+import Combine
+import mew_wallet_ios_walletconnect
+
 WalletConnectProvider.instance.events.sessionProposal
   .sink {[weak self] proposal in
     switch proposal {
@@ -89,7 +94,10 @@ private func _handleV1(proposal: SessionProposal) {
 
 4. Handling session requests:
 
-```
+```swift
+import Combine
+import mew_wallet_ios_walletconnect
+
 WalletConnectProvider.instance.events.sessionRequest
   .sink(receiveValue: {[weak self] request in
     switch request {
