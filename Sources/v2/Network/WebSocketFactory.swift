@@ -44,7 +44,6 @@ extension SocketFactory {
     var onText: ((String) -> Void)?
     
     init(url: URL) {
-      Logger.System.networking.level(.trace)
       self.url = url
       let request = URLRequest(url: url)
       _socket = WebSocket(request: request)
@@ -59,7 +58,7 @@ extension SocketFactory {
           case .text(let text):   self?._process(message: text)
           case .ping:             self?._socket.write(pong: Data())
           default:
-            Logger.debug(system: .networking, "Event: \(event)")
+            Logger.debug(.networking, "Event: \(event)")
           }
         }
       }

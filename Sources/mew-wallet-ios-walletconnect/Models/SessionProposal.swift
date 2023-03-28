@@ -20,7 +20,7 @@ public enum SessionProposal {
     case .v2(let proposal):
       guard !proposal.requiredNamespaces.contains(where: { $0.key != "eip155" }) else { return nil }
       let chainIdsReferences = proposal.requiredNamespaces.flatMap { (_, namespace) in
-        namespace.chains.map({ $0.reference })
+        namespace.chains?.map({ $0.reference }) ?? []
       }
       let chainIds = chainIdsReferences.compactMap { UInt64($0, radix: 10) }
       guard chainIdsReferences.count == chainIds.count else { return nil }

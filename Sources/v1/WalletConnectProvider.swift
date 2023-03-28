@@ -47,7 +47,6 @@ public final class WalletConnectProvider {
     try manager.cancel(wcURL)
   }
   
-  // TODO: ChainID is here!
   public func approve<T: Codable>(request: JSONRPC.Request, for session: Session, result: T) async throws {
     switch request.method {
     case .wc_sessionRequest:
