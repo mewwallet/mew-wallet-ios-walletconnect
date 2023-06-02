@@ -4,12 +4,15 @@ import WalletConnectUtils
 import WalletConnectPairing
 import WalletConnectEcho
 import WalletConnectPush
+import WalletConnectRouter
+import Auth
 import Combine
 import Foundation
 import mew_wallet_ios_logger
 
 public enum WalletConnectServiceError: Error {
   case invalidPairingURL
+  case badParameters
 }
 
 public final class WalletConnectProvider {
@@ -32,32 +35,21 @@ public final class WalletConnectProvider {
     return Sign.instance.getPendingRequests(topic: topic)
   }
 
-  public func configure(projectId: String, metadata: AppMetadata) {
+  public func configure(projectId: String, metadata: AppMetadata, cryptoProvider: CryptoProvider) {
     Networking.configure(projectId: projectId, socketFactory: SocketFactory())
     Pair.configure(metadata: metadata)
+    Auth.configure(crypto: cryptoProvider)
     
     // FIXME: For now we're not supporting WC2 push notifications
+    Push.configure(echoHost: "staging.mewwallet.dev/v2/wallet-connect", environment: .sandbox)
     
-//    do {
-//      let clientId  = try Networking.interactor.getClientId()
-//      let sanitizedClientId = clientId.replacingOccurrences(of: "did:key:", with: "")
-//      
-//    #if DEBUG
-//    Push.configure(environment: .sandbox)
-//    #else
-//    Push.configure(environment: .production)
-//    #endif
-//      Push.wallet.requestPublisher.sink { (id: RPCID, account: Account, metadata: AppMetadata) in
-//      }.store(in: &publishers)
-      
-//      Push.wallet.pushMessagePublisher.sink { pm in
-//      }.store(in: &publishers)
-      
-//      Logger.critical(.provider, "Client id: \(sanitizedClientId)")
-//      Echo.configure(projectId: projectId, clientId: sanitizedClientId)
-//    } catch {
-//      Logger.error(.provider, "Error: \(error)")
-//    }
+    Push.wallet.requestPublisher.sink { (id: RPCID, account: Account, metadata: AppMetadata) in
+      Logger.critical(.provider, "okok \(account)")
+    }.store(in: &publishers)
+    
+    Push.wallet.pushMessagePublisher.sink { pm in
+      Logger.critical(.provider, "okok 22 \(pm)")
+    }.store(in: &publishers)
   }
   
   /// For wallet to establish a pairing
@@ -97,22 +89,22 @@ public final class WalletConnectProvider {
     try await Sign.instance.respond(topic: topic, requestId: requestId, response: response)
   }
   
-  public func approve(proposal: Session.Proposal, accounts: [String]) async throws {
-    var sessionNamespaces = [String: SessionNamespace]()
-    proposal.requiredNamespaces.forEach {
-      let caip2Namespace = $0.key
-      let proposalNamespace = $0.value
-      let chains = proposalNamespace.chains ?? Set<Blockchain>()
-      let accounts = Set(accounts.flatMap { account in
-        chains.compactMap { Account(chainIdentifier: $0.absoluteString, address: account) }
-      })
-      
-      let sessionNamespace = SessionNamespace(accounts: accounts, methods: proposalNamespace.methods, events: proposalNamespace.events)
-      sessionNamespaces[caip2Namespace] = sessionNamespace
-      
-      sessionNamespaces[caip2Namespace] = sessionNamespace
-    }
-    try await approve(proposalId: proposal.id, namespaces: sessionNamespaces)
+  public func approve(proposal: Session.Proposal, chains: [UInt64], accounts: [String]) async throws {
+    let chains = chains.compactMap({ Blockchain(namespace: "eip155", reference: String($0)) })
+    
+    let accounts = chains.flatMap({ chain in
+      accounts.compactMap({ Account(blockchain: chain, address: $0) })
+    })
+    
+    let methods = proposal.requiredNamespaces.values.flatMap({ $0.methods })
+    
+    let events = proposal.requiredNamespaces.values.flatMap({ $0.events })
+    let namespaces = try AutoNamespaces.build(sessionProposal: proposal,
+                                              chains: chains,
+                                              methods: methods,
+                                              events: events,
+                                              accounts: accounts)
+    try await approve(proposalId: proposal.id, namespaces: namespaces)
   }
   
   /// For a wallet to approve a session proposal.
@@ -121,6 +113,17 @@ public final class WalletConnectProvider {
   ///   - namespaces: namespaces for given session, needs to contain at least required namespaces proposed by dApp.
   public func approve(proposalId: String, namespaces: [String: SessionNamespace]) async throws {
     try await Sign.instance.approve(proposalId: proposalId, namespaces: namespaces)
+  }
+  
+  public func approve(authRequest: WCAuthRequest, signature: String, chainId: UInt64, address: String) async throws {
+    guard let blockchain = Blockchain(namespace: "eip155", reference: String(chainId)) else { return }
+    guard let account = Account(blockchain: blockchain, address: address) else { return }
+    let signature = CacaoSignature(t: .eip191, s: signature)
+    try await Auth.instance.respond(requestId: authRequest.id, signature: signature, from: account)
+  }
+  
+  public func reject(authRequest: AuthRequest) async throws {
+    try await Auth.instance.reject(requestId: authRequest.id)
   }
   
   /// For the wallet to update session namespaces
@@ -189,9 +192,14 @@ public final class WalletConnectProvider {
     Task(priority: .userInitiated) {
       do {
         try await Push.wallet.register(deviceToken: token)
+        Logger.error(.provider, "Registered")
       } catch {
         Logger.error(.provider, "Error: \(error)")
       }
     }
+  }
+  
+  public func goBack() {
+    WalletConnectRouter.Router.goBack()
   }
 }
