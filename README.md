@@ -5,6 +5,8 @@ Package that allows to support WalletConnect v1 and v2.
 1. WC1 only: There's no built-in session storage for sessions. App must implement that. **For example only**:
 
 ```swift
+import mew_wallet_ios_walletconnect
+
 final class Storage: WC1.SessionStorage {
   var sessions: [WC1.Session] = []
   
@@ -126,6 +128,20 @@ private func _handleV1(request: mew_wallet_ios_walletconnect.Request) {
     }
   default:
     break
+  }
+}
+```
+
+5. Connection:
+
+```swift
+import mew_wallet_ios_walletconnect
+
+Task {
+  do {
+    try await WalletConnectProvider.instance.pair(url: "CONNECTION_CODE")
+  } catch {
+    // Handle error
   }
 }
 ```
