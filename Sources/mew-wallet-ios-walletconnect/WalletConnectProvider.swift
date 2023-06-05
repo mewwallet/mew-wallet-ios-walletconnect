@@ -59,9 +59,9 @@ public final class WalletConnectProvider {
     }
   }
   
-  public func configure(projectId: String, metadata: WC2.AppMetadata, storage: WC1.SessionStorage) {
+  public func configure(projectId: String, metadata: WC2.AppMetadata, storage: WC1.SessionStorage, provider: WC2.CryptoProvider) {
     // Configure v2
-    WC2.WalletConnectProvider.instance.configure(projectId: projectId, metadata: metadata)
+    WC2.WalletConnectProvider.instance.configure(projectId: projectId, metadata: metadata, cryptoProvider: provider)
     // Configure v1
     let metadata = WC1.Session.AppMetadata(name: metadata.name, url: metadata.url, description: metadata.description, icons: metadata.icons)
     WC1.WalletConnectProvider.instance.configure(metadata: metadata, storage: storage)
@@ -71,7 +71,7 @@ public final class WalletConnectProvider {
     switch request {
     case .v1(let request, let session):
       try await WC1.WalletConnectProvider.instance.approve(request: request, for: session, result: result)
-    case .v2(let request, _):
+    case .v2(let request, _, _):
       try await WC2.WalletConnectProvider.instance.approve(request: request, result: result)
     }
   }
@@ -80,7 +80,7 @@ public final class WalletConnectProvider {
     switch request {
     case .v1(let request, let session):
       try await WC1.WalletConnectProvider.instance.reject(request: request, for: session)
-    case .v2(let request, _):
+    case .v2(let request, _, _):
       try await WC2.WalletConnectProvider.instance.reject(request: request)
     }
   }
@@ -108,17 +108,18 @@ public final class WalletConnectProvider {
     switch proposal {
     case .v1(let request, let session):
       try await WC1.WalletConnectProvider.instance.reject(proposal: request, for: session)
-    case .v2(let proposal):
+    case .v2(let proposal, _):
       try await WC2.WalletConnectProvider.instance.reject(proposalId: proposal.id, reason: reason)
     }
   }
   
-  public func approve(proposal: SessionProposal, accounts: [String], chainId: UInt64) async throws {
+  public func approve(proposal: SessionProposal, accounts: [String], chains: [UInt64]) async throws {
     switch proposal {
     case .v1(let request, let session):
-      try await WC1.WalletConnectProvider.instance.approve(proposal: request, for: session, result: accounts, chainId: chainId)
-    case .v2(let proposal):
-      try await WC2.WalletConnectProvider.instance.approve(proposal: proposal, accounts: accounts)
+      guard let chain = chains.first else { throw WalletConnectServiceError.badParameters }
+      try await WC1.WalletConnectProvider.instance.approve(proposal: request, for: session, result: accounts, chainId: chain)
+    case .v2(let proposal, _):
+      try await WC2.WalletConnectProvider.instance.approve(proposal: proposal, chains: chains, accounts: accounts)
       
     }
   }
@@ -133,8 +134,26 @@ public final class WalletConnectProvider {
     }
   }
   
+  public func reject(authRequest: AuthRequest) async throws {
+    switch authRequest {
+    case .v2(let request, _):
+      try await WC2.WalletConnectProvider.instance.reject(authRequest: request)
+    }
+  }
+  
+  public func approve(authRequest: AuthRequest, signature: String, chainId: UInt64, account: String) async throws {
+    switch authRequest {
+    case .v2(let request, _):
+      try await WC2.WalletConnectProvider.instance.approve(authRequest: request, signature: signature, chainId: chainId, address: account)
+    }
+  }
+  
   public func register(pushToken token: Data) {
     WC2.WalletConnectProvider.instance.register(pushToken: token)
+  }
+  
+  @MainActor public func goBack() {
+    WC2.WalletConnectProvider.instance.goBack()
   }
   
 }

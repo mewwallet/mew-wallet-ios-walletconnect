@@ -22,9 +22,9 @@ extension Session: Comparable {
     case (.v2(let lhsSession), .v2(let rhsSession)):
       return lhsSession < rhsSession
     case (.v1(let lhsSession), .v2(let rhsSession)):
-      return lhsSession.created < rhsSession.created
+      return lhsSession.created < rhsSession.expiryDate
     case (.v2(let lhsSession), .v1(let rhsSession)):
-      return lhsSession.created < rhsSession.created
+      return lhsSession.expiryDate < rhsSession.created
     }
   }
 }
