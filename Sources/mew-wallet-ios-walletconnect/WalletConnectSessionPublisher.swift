@@ -18,10 +18,9 @@ public final class WalletConnectSessionPublisher {
       .map { SessionProposal.v1(request: $0, session: $1) }
     
     let v2 = WC2.WalletConnectProvider.instance.events.sessionProposal
-      .map { SessionProposal.v2(proposal: $0) }
+      .map { SessionProposal.v2(proposal: $0.proposal, context: $0.context) }
     
     return Publishers.Merge(v1, v2)
-      .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
   }
 
@@ -32,13 +31,21 @@ public final class WalletConnectSessionPublisher {
     
     let v2 = WC2.WalletConnectProvider.instance.events.sessionRequest
       .compactMap { request -> Request? in
-        guard let session = WC2.WalletConnectProvider.instance.sessions.first(where: { $0.topic == request.topic }) else { return nil }
-        return Request.v2(request: request, session: session)
+        guard let session = WC2.WalletConnectProvider.instance.sessions.first(where: { $0.topic == request.request.topic }) else { return nil }
+        return Request.v2(request: request.request, context: request.context, session: session)
       }
     
     return Publishers.Merge(v1, v2)
-      .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
+  }
+  
+  public var authRequests: AnyPublisher<AuthRequest, Never> {
+    let v2 = WC2.WalletConnectProvider.instance.events.authRequests
+      .compactMap {
+        return AuthRequest.v2(request: $0.request, context: $0.context)
+      }
+      .eraseToAnyPublisher()
+    return v2
   }
   
   public var sessionDelete: AnyPublisher<(String, Reason), Never> {
@@ -49,7 +56,6 @@ public final class WalletConnectSessionPublisher {
       .map { ($0, Reason.v2(reason: $1)) }
     
     return Publishers.Merge(v1, v2)
-      .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
   }
   
@@ -65,7 +71,6 @@ public final class WalletConnectSessionPublisher {
     
     return Publishers.Merge(v1, v2)
       .map { _ in }
-      .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
   }
 }

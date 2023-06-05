@@ -6,18 +6,19 @@
 //
 
 import Foundation
+import WalletConnectSign
 import mew_wallet_ios_walletconnect_v1
 import mew_wallet_ios_walletconnect_v2
 
 public enum SessionProposal {
   case v1(request: WC1.Request, session: WC1.Session)
-  case v2(proposal: WC2.Session.Proposal)
+  case v2(proposal: WC2.Session.Proposal, context: WC2.VerifyContext?)
   
   public var chainIds: [UInt64]? {
     switch self {
     case .v1(_, let session):
       return [session.chainId]
-    case .v2(let proposal):
+    case .v2(let proposal, _):
       guard !proposal.requiredNamespaces.contains(where: { $0.key != "eip155" }) else { return nil }
       let chainIdsReferences = proposal.requiredNamespaces.flatMap { (_, namespace) in
         namespace.chains?.map({ $0.reference }) ?? []

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WalletConnectSign
 
 extension Request {
   public struct Params {
