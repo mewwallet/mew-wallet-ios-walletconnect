@@ -40,14 +40,14 @@ public final class WalletConnectProvider {
     Pair.configure(metadata: metadata)
     Auth.configure(crypto: cryptoProvider)
     
-    // FIXME: For now we're not supporting WC2 push notifications
-    /* Push.configure(echoHost: "echo host", environment: .sandbox) */
+    /* Push.configure(echoHost: "echo host", environment: .sandbox)
     
     Push.wallet.requestPublisher.sink { (id: RPCID, account: Account, metadata: AppMetadata) in
     }.store(in: &publishers)
     
     Push.wallet.pushMessagePublisher.sink { pm in
     }.store(in: &publishers)
+    */
   }
   
   /// For wallet to establish a pairing
