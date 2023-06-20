@@ -26,6 +26,8 @@ public final class WalletConnectProvider {
     Sign.instance.getSessions()
   }
   
+  private var pushValidationSubject = PassthroughSubject<PushOnSign, Never>()
+  
   private var publishers = [AnyCancellable]()
   
   /// Query pending requests
@@ -35,19 +37,47 @@ public final class WalletConnectProvider {
     return Sign.instance.getPendingRequests(topic: topic)
   }
 
-  public func configure(projectId: String, metadata: AppMetadata, cryptoProvider: CryptoProvider) {
+  public func configure(projectId: String, notifications: (echoHost: String?, environment: APNSEnvironment)?, metadata: AppMetadata, cryptoProvider: CryptoProvider) {
     Networking.configure(projectId: projectId, socketFactory: SocketFactory())
     Pair.configure(metadata: metadata)
     Auth.configure(crypto: cryptoProvider)
     
-    /* Push.configure(echoHost: "echo host", environment: .sandbox)
-    
-    Push.wallet.requestPublisher.sink { (id: RPCID, account: Account, metadata: AppMetadata) in
-    }.store(in: &publishers)
-    
-    Push.wallet.pushMessagePublisher.sink { pm in
-    }.store(in: &publishers)
-    */
+    if let notifications {
+      if let echoHost = notifications.echoHost {
+        Push.configure(echoHost: echoHost, environment: notifications.environment)
+      } else {
+        Push.configure(environment: notifications.environment)
+      }
+      
+      Push.wallet.requestPublisher.sink {[weak self] (id: RPCID, account: Account, metadata: AppMetadata) in
+        Task(priority: .userInitiated) {[unowned self] in
+          do {
+            try await Push.wallet.approve(id: id) {[unowned self] message in
+              return await withCheckedContinuation {[unowned self] continuation in
+                let request = PushOnSign(payload: message, account: account, continuation: continuation)
+                self?.events.pushOnSignSubject.send(request)
+              }
+            }
+          } catch {
+            Logger.critical(.provider, "request error >>> \(error)")
+          }
+        }
+      }.store(in: &publishers)      
+    }
+  }
+  
+  public func proposePush(session: Session) {
+    Task {
+      do {
+        for account in session.accounts {
+          Logger.critical(.provider, "propose for: \(account)")
+          try await Push.dapp.propose(account: account, topic: session.pairingTopic)
+        }
+        Logger.critical(.provider, "done propose")
+      } catch {
+        Logger.critical(.provider, "error: \(error)")
+      }
+    }
   }
   
   /// For wallet to establish a pairing
@@ -193,6 +223,24 @@ public final class WalletConnectProvider {
         Logger.debug(.provider, "Registered")
       } catch {
         Logger.error(.provider, "Error: \(error)")
+      }
+    }
+  }
+  
+  public func reset() async {
+    for session in sessions {
+      do {
+        try await self.disconnect(session: session)
+      } catch {
+        Logger.error(.provider, error)
+      }
+    }
+    let subscriptions = Push.wallet.getActiveSubscriptions()
+    for subscription in subscriptions {
+      do {
+        try await Push.wallet.deleteSubscription(topic: subscription.topic)
+      } catch {
+        Logger.error(.provider, error)
       }
     }
   }
