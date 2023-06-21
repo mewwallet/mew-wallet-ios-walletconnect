@@ -62,7 +62,7 @@ public final class WalletConnectProvider {
             Logger.critical(.provider, "request error >>> \(error)")
           }
         }
-      }.store(in: &publishers)      
+      }.store(in: &publishers)
     }
   }
   
@@ -70,12 +70,10 @@ public final class WalletConnectProvider {
     Task {
       do {
         for account in session.accounts {
-          Logger.critical(.provider, "propose for: \(account)")
           try await Push.dapp.propose(account: account, topic: session.pairingTopic)
         }
-        Logger.critical(.provider, "done propose")
       } catch {
-        Logger.critical(.provider, "error: \(error)")
+        Logger.error(.provider, error)
       }
     }
   }
