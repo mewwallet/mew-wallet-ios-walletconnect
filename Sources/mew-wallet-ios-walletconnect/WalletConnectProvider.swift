@@ -162,8 +162,8 @@ public final class WalletConnectProvider {
     }
   }
   
-  public func register(pushToken token: Data) {
-    WC2.WalletConnectProvider.instance.register(pushToken: token)
+  public func register(pushToken token: Data) async {
+    await WC2.WalletConnectProvider.instance.register(pushToken: token)
   }
   
   public func reset() async {

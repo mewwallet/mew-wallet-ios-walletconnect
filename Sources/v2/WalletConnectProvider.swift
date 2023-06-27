@@ -59,22 +59,10 @@ public final class WalletConnectProvider {
               }
             }
           } catch {
-            Logger.critical(.provider, "request error >>> \(error)")
+            Logger.error(.provider, error)
           }
         }
       }.store(in: &publishers)
-    }
-  }
-  
-  public func proposePush(session: Session) {
-    Task {
-      do {
-        for account in session.accounts {
-          try await Push.dapp.propose(account: account, topic: session.pairingTopic)
-        }
-      } catch {
-        Logger.error(.provider, error)
-      }
     }
   }
   
@@ -214,14 +202,12 @@ public final class WalletConnectProvider {
     try await Sign.instance.disconnect(topic: session.topic)
   }
   
-  public func register(pushToken token: Data) {
-    Task(priority: .userInitiated) {
-      do {
-        try await Push.wallet.register(deviceToken: token)
-        Logger.debug(.provider, "Registered")
-      } catch {
-        Logger.error(.provider, "Error: \(error)")
-      }
+  public func register(pushToken token: Data) async {
+    do {
+      try await Push.wallet.register(deviceToken: token)
+      Logger.debug(.provider, "Registered")
+    } catch {
+      Logger.error(.provider, "Error: \(error)")
     }
   }
   
