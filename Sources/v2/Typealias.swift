@@ -2,6 +2,7 @@ import Foundation
 import WalletConnectSign
 import WalletConnectVerify
 import WalletConnectUtils
+import WalletConnectPush
 import Auth
 
 public typealias SessionNamespace = WalletConnectSign.SessionNamespace
@@ -19,3 +20,4 @@ public typealias Reason = WalletConnectNetworking.Reason
 public typealias Blockchain = WalletConnectUtils.Blockchain
 public typealias RejectionReason = WalletConnectSign.RejectionReason
 public typealias SIWECacaoFormatter = WalletConnectUtils.SIWECacaoFormatter
+public typealias APNSEnvironment = WalletConnectPush.APNSEnvironment

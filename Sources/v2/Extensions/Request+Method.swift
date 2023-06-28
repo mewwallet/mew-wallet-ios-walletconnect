@@ -18,7 +18,11 @@ extension Request {
           return .raw(method: method, params: self.params.stringRepresentation)
         }
         let messageHex = params[1]
-        let address = params[0]
+        var address = params[0]
+        guard address.count >= 42 else {
+          return .raw(method: method, params: self.params.stringRepresentation)
+        }
+        address = String(address.suffix(42))
         
         let messageData = Data(hex: messageHex)
         let message = String(data: messageData, encoding: .utf8)
@@ -31,7 +35,11 @@ extension Request {
           
         }
         let messageHex = params[0]
-        let address = params[1]
+        var address = params[1]
+        guard address.count >= 42 else {
+          return .raw(method: method, params: self.params.stringRepresentation)
+        }
+        address = String(address.suffix(42))
         
         let messageData = Data(hex: messageHex)
         let message = String(data: messageData, encoding: .utf8)
@@ -42,7 +50,12 @@ extension Request {
         guard params.count == 2 else {
           return .raw(method: method, params: self.params.stringRepresentation)
         }
-        let address     = params[0]
+        var address = params[0]
+        guard address.count >= 42 else {
+          return .raw(method: method, params: self.params.stringRepresentation)
+        }
+        address = String(address.suffix(42))
+        
         let messageJSON = params[1]
         guard let data = messageJSON.data(using: .utf8) else {
           return .raw(method: method, params: self.params.stringRepresentation)

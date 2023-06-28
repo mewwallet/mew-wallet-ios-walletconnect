@@ -73,4 +73,14 @@ public final class WalletConnectSessionPublisher {
       .map { _ in }
       .eraseToAnyPublisher()
   }
+  
+  public var pushRequest: AnyPublisher<PushRequest, Never> {
+    let v2 = WC2.WalletConnectProvider.instance.events.pushOnSign
+      .map {
+        return PushRequest.v2(request: $0)
+      }
+      .eraseToAnyPublisher()
+    
+    return v2
+  }
 }
