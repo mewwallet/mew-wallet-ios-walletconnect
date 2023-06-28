@@ -129,4 +129,14 @@ public final class WalletConnectProvider {
       Logger.error(.provider, error)
     }
   }
+  
+  public func reset() async {
+    for session in sessions {
+      do {
+        try await self.disconnect(session: session)
+      } catch {
+        Logger.error(.provider, error)
+      }
+    }
+  }
 }
