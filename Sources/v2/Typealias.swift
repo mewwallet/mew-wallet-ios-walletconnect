@@ -12,6 +12,7 @@ public typealias VerifyContext = WalletConnectVerify.VerifyContext
 public typealias Request = WalletConnectSign.Request
 public typealias WCAuthRequest = AuthRequest
 public typealias WCCryptoProvider = CryptoProvider
+public typealias WCBIP44Provider = BIP44Provider
 public typealias Response = WalletConnectSign.Response
 public typealias Account = WalletConnectSign.Account
 public typealias AppMetadata = WalletConnectSign.AppMetadata

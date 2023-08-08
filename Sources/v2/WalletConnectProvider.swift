@@ -34,10 +34,10 @@ public final class WalletConnectProvider {
   /// - Returns: Pending requests received from peer with `wc_sessionRequest` protocol method
   /// - Parameter topic: topic representing session for which you want to get pending requests. If nil, you will receive pending requests for all active sessions.
   public func getPendingRequests(topic: String? = nil) -> [Request] {
-    return Sign.instance.getPendingRequests(topic: topic)
+    return Sign.instance.getPendingRequests(topic: topic).map({ $0.request })
   }
 
-  public func configure(projectId: String, notifications: (echoHost: String?, environment: APNSEnvironment)?, metadata: AppMetadata, cryptoProvider: CryptoProvider) {
+  public func configure(projectId: String, notifications: (echoHost: String?, environment: APNSEnvironment)?, metadata: AppMetadata, cryptoProvider: CryptoProvider & BIP44Provider) {
     Networking.configure(projectId: projectId, socketFactory: SocketFactory())
     Pair.configure(metadata: metadata)
     Auth.configure(crypto: cryptoProvider)
@@ -48,6 +48,8 @@ public final class WalletConnectProvider {
       } else {
         Push.configure(environment: notifications.environment)
       }
+      
+      Sync.configure(bip44: cryptoProvider)
       
       Push.wallet.requestPublisher.sink {[weak self] (id: RPCID, account: Account, metadata: AppMetadata) in
         Task(priority: .userInitiated) {[unowned self] in
@@ -103,19 +105,27 @@ public final class WalletConnectProvider {
     try await Sign.instance.respond(topic: topic, requestId: requestId, response: response)
   }
   
-  public func approve(proposal: Session.Proposal, chains: [UInt64], accounts: [String]) async throws {
+  public func approve(proposal: Session.Proposal, chains: [UInt64], accounts: [String], supportedMethods: Set<String> = []) async throws {
     let chains = chains.compactMap({ Blockchain(namespace: "eip155", reference: String($0)) })
     
     let accounts = chains.flatMap({ chain in
       accounts.compactMap({ Account(blockchain: chain, address: $0) })
     })
     
-    let methods = proposal.requiredNamespaces.values.flatMap({ $0.methods })
+    var mappedMethods = proposal.requiredNamespaces.filter({ $0.key == "eip155" }).values.flatMap({ $0.methods })
+    if let optionalNamespaces = proposal.optionalNamespaces {
+      mappedMethods.append(contentsOf: optionalNamespaces.filter({ $0.key == "eip155" }).values.flatMap({ $0.methods }))
+    }
+    var methods = Set(mappedMethods)
+    
+    if !supportedMethods.isEmpty {
+      methods.formIntersection(supportedMethods)
+    }
     
     let events = proposal.requiredNamespaces.values.flatMap({ $0.events })
     let namespaces = try AutoNamespaces.build(sessionProposal: proposal,
                                               chains: chains,
-                                              methods: methods,
+                                              methods: [String](methods),
                                               events: events,
                                               accounts: accounts)
     try await approve(proposalId: proposal.id, namespaces: namespaces)
