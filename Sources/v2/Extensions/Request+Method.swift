@@ -45,7 +45,7 @@ extension Request {
         let message = String(data: messageData, encoding: .utf8)
         return .eth_personalSign(address: address, data: messageData, message: message)
         
-      case "eth_signTypedData":
+      case "eth_signTypedData", "eth_signTypedData_v4":
         let params = try self.params.get([String].self)
         guard params.count == 2 else {
           return .raw(method: method, params: self.params.stringRepresentation)
@@ -63,7 +63,7 @@ extension Request {
         guard let message = try JSONSerialization.jsonObject(with: data) as? AnyHashable else {
           return .raw(method: method, params: self.params.stringRepresentation)
         }
-        return .eth_signTypedData(address: address, message: message)
+        return .eth_signTypedData (address: address, message: message)
         
       case "eth_signTransaction":
         let params = try self.params.get([Request.Params.Transaction].self)

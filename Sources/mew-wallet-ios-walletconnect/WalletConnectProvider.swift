@@ -113,13 +113,13 @@ public final class WalletConnectProvider {
     }
   }
   
-  public func approve(proposal: SessionProposal, accounts: [String], chains: [UInt64]) async throws {
+  public func approve(proposal: SessionProposal, accounts: [String], chains: [UInt64], supportedMethods: Set<String> = []) async throws {
     switch proposal {
     case .v1(let request, let session):
       guard let chain = chains.first else { throw WalletConnectServiceError.badParameters }
       try await WC1.WalletConnectProvider.instance.approve(proposal: request, for: session, result: accounts, chainId: chain)
     case .v2(let proposal, _):
-      try await WC2.WalletConnectProvider.instance.approve(proposal: proposal, chains: chains, accounts: accounts)
+      try await WC2.WalletConnectProvider.instance.approve(proposal: proposal, chains: chains, accounts: accounts, supportedMethods: supportedMethods)
       
     }
   }
