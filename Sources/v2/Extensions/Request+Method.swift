@@ -30,9 +30,8 @@ extension Request {
         
       case "personal_sign":
         let params = try self.params.get([String].self)
-        guard params.count == 2 else {
+        guard params.count >= 2 else {
           return .raw(method: method, params: self.params.stringRepresentation)
-          
         }
         let messageHex = params[0]
         var address = params[1]
