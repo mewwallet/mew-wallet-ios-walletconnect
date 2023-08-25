@@ -37,6 +37,31 @@ public enum SessionProposal {
       return chainIds
     }
   }
+  
+  public var optionalChainIds: [UInt64]? {
+    switch self {
+    case .v1:
+      return nil
+    case .v2(let proposal, _):
+      guard let namespace = proposal.optionalNamespaces else { return nil }
+      guard !namespace.contains(where: { !$0.key.hasPrefix("eip155") }) else { return nil }
+      let chainIdsReferences = namespace.flatMap { (key, namespace) -> [String] in
+        if let chains = namespace.chains {
+          return chains.map({ $0.reference })
+        } else if key.count > 7 {
+          var chainId = key
+          chainId.removeFirst(7)
+          guard !chainId.isEmpty else { return [] }
+          return [chainId]
+        } else {
+          return []
+        }
+      }
+      let chainIds = chainIdsReferences.compactMap { UInt64($0, radix: 10) }
+      guard chainIdsReferences.count == chainIds.count else { return nil }
+      return chainIds
+    }
+  }
 }
 
 // MARK: - SessionProposal + Equatable

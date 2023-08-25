@@ -30,9 +30,8 @@ extension Request {
         
       case "personal_sign":
         let params = try self.params.get([String].self)
-        guard params.count == 2 else {
+        guard params.count >= 2 else {
           return .raw(method: method, params: self.params.stringRepresentation)
-          
         }
         let messageHex = params[0]
         var address = params[1]
@@ -80,6 +79,14 @@ extension Request {
         }
         let transaction = params[0]
         return .eth_sendTransaction(transaction: transaction)
+        
+      case "wallet_switchEthereumChain":
+        let params = try self.params.get([Request.Params.ChainID].self)
+        guard params.count == 1 else {
+          return .raw(method: method, params: self.params.stringRepresentation)
+        }
+        let chain = params[0]
+        return .wallet_switchEthereumChain(chain: chain)
         
       default:
         return .raw(method: method, params: self.params.stringRepresentation)
