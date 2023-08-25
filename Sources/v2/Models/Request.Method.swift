@@ -14,6 +14,7 @@ extension Request {
     case eth_signTypedData(address: String, message: AnyHashable)
     case eth_signTransaction(transaction: Request.Params.Transaction)
     case eth_sendTransaction(transaction: Request.Params.Transaction)
+    case wallet_switchEthereumChain(chain: Request.Params.ChainID)
     case raw(method: String, params: String)
   }
 }
