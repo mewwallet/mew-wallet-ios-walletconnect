@@ -10,6 +10,8 @@ import WalletConnectSign
 
 extension Request {
   public struct Params {
+    // MARK: - Transaction
+    
     public struct Transaction: Codable {
       public struct AccessListItem: Codable {
         public var address: String
@@ -88,6 +90,12 @@ extension Request {
         try container.encode(self.data,                           forKey: .data)
         try container.encodeIfPresent(self.accessList,            forKey: .accessList)
       }
+    }
+    
+    // MARK: - ChainID
+    
+    public struct ChainID: Codable {
+      public let chainId: String
     }
   }
 }
