@@ -16,6 +16,11 @@ public enum AuthRequest {
     case .v2(let request, _):     return UInt64(request.payload.chainId)
     }
   }
+  
+  public var redirect: String? {
+    guard case .v2(let request, let context) = self else { return nil }
+    return request.requester.redirect?.native ?? request.requester.redirect?.universal
+  }
 }
 
 // MARK: - AuthRequest + Equatable
