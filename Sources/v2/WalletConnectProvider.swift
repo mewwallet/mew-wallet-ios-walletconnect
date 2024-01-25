@@ -238,6 +238,7 @@ public final class WalletConnectProvider {
         Logger.error(.provider, error)
       }
     }
+    // FIXME: Re-do push notifications
 //    let subscriptions = Push.wallet.getActiveSubscriptions()
 //    for subscription in subscriptions {
 //      do {
