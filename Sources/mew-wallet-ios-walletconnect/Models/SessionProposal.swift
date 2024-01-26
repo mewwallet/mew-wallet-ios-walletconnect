@@ -62,6 +62,13 @@ public enum SessionProposal {
       return chainIds
     }
   }
+  
+  public var redirect: String? {
+    guard case .v2(let proposal, let context) = self else {
+      return nil
+    }
+    return proposal.proposer.redirect?.native ?? proposal.proposer.redirect?.universal
+  }
 }
 
 // MARK: - SessionProposal + Equatable

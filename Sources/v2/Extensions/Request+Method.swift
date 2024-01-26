@@ -8,6 +8,8 @@
 import Foundation
 import WalletConnectSign
 
+private let _nonHexCharacterSet = CharacterSet(charactersIn: "0123456789ABCDEF").inverted
+
 extension Request {
   public var wcMethod: Method {
     do {
@@ -33,16 +35,32 @@ extension Request {
         guard params.count >= 2 else {
           return .raw(method: method, params: self.params.stringRepresentation)
         }
-        let messageHex = params[0]
+        // Get address
         var address = params[1]
         guard address.count >= 42 else {
           return .raw(method: method, params: self.params.stringRepresentation)
         }
         address = String(address.suffix(42))
         
-        let messageData = Data(hex: messageHex)
-        let message = String(data: messageData, encoding: .utf8)
-        return .eth_personalSign(address: address, data: messageData, message: message)
+        // Check message
+        var checkMessage = params[0]
+        if checkMessage.hasPrefix("0x") {
+          let indexStart = checkMessage.index(checkMessage.startIndex, offsetBy: 2)
+          checkMessage = String(checkMessage[indexStart...])
+        }
+        if checkMessage.uppercased().rangeOfCharacter(from: _nonHexCharacterSet) == nil {
+          // hex message
+          let messageData = Data(hex: checkMessage)
+          let message = String(data: messageData, encoding: .utf8)
+          return .eth_personalSign(address: address, data: messageData, message: message)
+        } else {
+          // non-hex message
+          let message = params[0]
+          guard let messageData = message.data(using: .utf8) else {
+            return .raw(method: method, params: self.params.stringRepresentation)
+          }
+          return .eth_personalSign(address: address, data: messageData, message: message)
+        }
         
       case "eth_signTypedData", "eth_signTypedData_v4":
         let params = try self.params.get([String].self)
