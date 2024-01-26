@@ -20,7 +20,7 @@ let package = Package(
       targets: ["mew-wallet-ios-walletconnect-v2"])
   ],
   dependencies: [
-    .package(url: "https://github.com/WalletConnect/WalletConnectSwiftV2", exact: "1.6.15"),
+    .package(url: "https://github.com/WalletConnect/WalletConnectSwiftV2", exact: "1.11.0"),
     .package(url: "https://github.com/krzyzanowskim/CryptoSwift", from: "1.4.0"),
     .package(url: "https://github.com/daltoniam/Starscream", from: "4.0.0"),
     .package(url: "https://github.com/mewwallet/mew-wallet-ios-logger.git", .upToNextMajor(from: "2.0.0"))
@@ -47,10 +47,12 @@ let package = Package(
       dependencies: [
         .product(name: "WalletConnect", package: "WalletConnectSwiftV2"),
         .product(name: "WalletConnectNetworking", package: "WalletConnectSwiftV2"),
-        .product(name: "WalletConnectEcho", package: "WalletConnectSwiftV2"),
         .product(name: "WalletConnectPush", package: "WalletConnectSwiftV2"),
         .product(name: "WalletConnectAuth", package: "WalletConnectSwiftV2"),
         .product(name: "WalletConnectRouter", package: "WalletConnectSwiftV2"),
+        .product(name: "WalletConnectNotify", package: "WalletConnectSwiftV2"),
+        .product(name: "WalletConnectSync", package: "WalletConnectSwiftV2"),
+        .product(name: "WalletConnectPairing", package: "WalletConnectSwiftV2"),
         .product(name: "Starscream", package: "Starscream")
       ],
       path: "Sources/v2"),

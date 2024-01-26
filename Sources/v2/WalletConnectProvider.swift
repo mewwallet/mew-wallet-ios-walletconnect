@@ -2,9 +2,10 @@ import os
 import WalletConnectSign
 import WalletConnectUtils
 import WalletConnectPairing
-import WalletConnectEcho
 import WalletConnectPush
 import WalletConnectRouter
+import WalletConnectSync
+import WalletConnectNotify
 import Auth
 import Combine
 import Foundation
@@ -37,34 +38,42 @@ public final class WalletConnectProvider {
     return Sign.instance.getPendingRequests(topic: topic).map({ $0.request })
   }
 
-  public func configure(projectId: String, notifications: (echoHost: String?, environment: APNSEnvironment)?, metadata: AppMetadata, cryptoProvider: CryptoProvider & BIP44Provider) {
-    Networking.configure(projectId: projectId, socketFactory: SocketFactory())
+  public func configure(
+    projectId: String,
+    groupIdentifier: String,
+    notifications: (pushHost: String?, environment: APNSEnvironment)?,
+    metadata: AppMetadata,
+    cryptoProvider: CryptoProvider & BIP44Provider
+  ) {
+    Networking.configure(groupIdentifier: groupIdentifier, projectId: projectId, socketFactory: SocketFactory())
     Pair.configure(metadata: metadata)
     Auth.configure(crypto: cryptoProvider)
     
     if let notifications {
-      if let echoHost = notifications.echoHost {
-        Push.configure(echoHost: echoHost, environment: notifications.environment)
+      if let pushHost = notifications.pushHost {
+        Notify.configure(pushHost: pushHost, environment: notifications.environment, crypto: cryptoProvider)
       } else {
-        Push.configure(environment: notifications.environment)
+        Notify.configure(environment: notifications.environment, crypto: cryptoProvider)
       }
       
       Sync.configure(bip44: cryptoProvider)
       
-      Push.wallet.requestPublisher.sink {[weak self] (id: RPCID, account: Account, metadata: AppMetadata) in
-        Task(priority: .userInitiated) {[unowned self] in
-          do {
-            try await Push.wallet.approve(id: id) {[unowned self] message in
-              return await withCheckedContinuation {[unowned self] continuation in
-                let request = PushOnSign(payload: message, account: account, continuation: continuation)
-                self?.events.pushOnSignSubject.send(request)
-              }
-            }
-          } catch {
-            Logger.error(.provider, error)
-          }
-        }
-      }.store(in: &publishers)
+      // FIXME: Re-do push notifications
+      
+//      Push.wallet.requestPublisher.sink {[weak self] (id: RPCID, account: Account, metadata: AppMetadata) in
+//        Task(priority: .userInitiated) {[unowned self] in
+//          do {
+//            try await Push.wallet.approve(id: id) {[unowned self] message in
+//              return await withCheckedContinuation {[unowned self] continuation in
+//                let request = PushOnSign(payload: message, account: account, continuation: continuation)
+//                self?.events.pushOnSignSubject.send(request)
+//              }
+//            }
+//          } catch {
+//            Logger.error(.provider, error)
+//          }
+//        }
+//      }.store(in: &publishers)
     }
   }
   
@@ -214,7 +223,7 @@ public final class WalletConnectProvider {
   
   public func register(pushToken token: Data) async {
     do {
-      try await Push.wallet.register(deviceToken: token)
+      try await Notify.instance.register(deviceToken: token)
       Logger.debug(.provider, "Registered")
     } catch {
       Logger.error(.provider, "Error: \(error)")
@@ -229,17 +238,18 @@ public final class WalletConnectProvider {
         Logger.error(.provider, error)
       }
     }
-    let subscriptions = Push.wallet.getActiveSubscriptions()
-    for subscription in subscriptions {
-      do {
-        try await Push.wallet.deleteSubscription(topic: subscription.topic)
-      } catch {
-        Logger.error(.provider, error)
-      }
-    }
+    // FIXME: Re-do push notifications
+//    let subscriptions = Push.wallet.getActiveSubscriptions()
+//    for subscription in subscriptions {
+//      do {
+//        try await Push.wallet.deleteSubscription(topic: subscription.topic)
+//      } catch {
+//        Logger.error(.provider, error)
+//      }
+//    }
   }
   
-  public func goBack() {
-    WalletConnectRouter.Router.goBack()
+  public func goBack(uri: String) {
+    WalletConnectRouter.goBack(uri: uri)
   }
 }

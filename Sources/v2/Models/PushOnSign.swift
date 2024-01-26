@@ -10,33 +10,37 @@ import WalletConnectPush
 
 public final class PushOnSign {
   private let uuid = UUID()
-  public let payload: String
-  public let account: Account
-  var continuation: CheckedContinuation<SigningResult, Never>?
   
-  init(payload: String, account: Account, continuation: CheckedContinuation<SigningResult, Never>) {
-    self.account = account
-    self.payload = payload
-    self.continuation = continuation
-  }
+  init() {}
+// FIXME: Re-do push notifications
   
-  deinit {
-    guard let continuation else { return }
-    continuation.resume(returning: .rejected)
-  }
-  
-  public func reject() {
-    guard let continuation else { return }
-    self.continuation = nil
-    continuation.resume(returning: .rejected)
-  }
-  
-  public func fulfill(_ signature: String) {
-    guard let continuation else { return }
-    self.continuation = nil
-    let signature = CacaoSignature(t: .eip191, s: signature)
-    continuation.resume(returning: .signed(signature))
-  }
+//  public let payload: String
+//  public let account: Account
+//  var continuation: CheckedContinuation<SigningResult, Never>?
+//  
+//  init(payload: String, account: Account, continuation: CheckedContinuation<SigningResult, Never>) {
+//    self.account = account
+//    self.payload = payload
+//    self.continuation = continuation
+//  }
+//  
+//  deinit {
+//    guard let continuation else { return }
+//    continuation.resume(returning: .rejected)
+//  }
+//  
+//  public func reject() {
+//    guard let continuation else { return }
+//    self.continuation = nil
+//    continuation.resume(returning: .rejected)
+//  }
+//  
+//  public func fulfill(_ signature: String) {
+//    guard let continuation else { return }
+//    self.continuation = nil
+//    let signature = CacaoSignature(t: .eip191, s: signature)
+//    continuation.resume(returning: .signed(signature))
+//  }
 }
 
 extension PushOnSign: Equatable {

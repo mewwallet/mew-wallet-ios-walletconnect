@@ -59,9 +59,9 @@ public final class WalletConnectProvider {
     }
   }
   
-  public func configure(projectId: String, notifications: (echoHost: String?, environment: WC2.APNSEnvironment)? = nil, metadata: WC2.AppMetadata, storage: WC1.SessionStorage, provider: WC2.CryptoProvider) {
+  public func configure(projectId: String, groupIdentifier: String, notifications: (pushHost: String?, environment: WC2.APNSEnvironment)? = nil, metadata: WC2.AppMetadata, storage: WC1.SessionStorage, provider: WC2.CryptoProvider) {
     // Configure v2
-    WC2.WalletConnectProvider.instance.configure(projectId: projectId, notifications: notifications, metadata: metadata, cryptoProvider: provider)
+    WC2.WalletConnectProvider.instance.configure(projectId: projectId, groupIdentifier: groupIdentifier, notifications: notifications, metadata: metadata, cryptoProvider: provider)
     // Configure v1
     let metadata = WC1.Session.AppMetadata(name: metadata.name, url: metadata.url, description: metadata.description, icons: metadata.icons)
     WC1.WalletConnectProvider.instance.configure(metadata: metadata, storage: storage)
@@ -149,17 +149,19 @@ public final class WalletConnectProvider {
   }
   
   public func reject(pushRequest: PushRequest) async throws {
-    switch pushRequest {
-    case .v2(let request):
-      request.reject()
-    }
+    // FIXME: Re-do push notifications
+//    switch pushRequest {
+//    case .v2(let request):
+//      request.reject()
+//    }
   }
   
   public func approve(pushRequest: PushRequest, signature: String) async throws {
-    switch pushRequest {
-    case .v2(let request):
-      request.fulfill(signature)
-    }
+    // FIXME: Re-do push notifications
+//    switch pushRequest {
+//    case .v2(let request):
+//      request.fulfill(signature)
+//    }
   }
   
   public func register(pushToken token: Data) async {
@@ -171,8 +173,8 @@ public final class WalletConnectProvider {
     await WC2.WalletConnectProvider.instance.reset()
   }
   
-  @MainActor public func goBack() {
-    WC2.WalletConnectProvider.instance.goBack()
+  @MainActor public func goBack(uri: String) {
+    WC2.WalletConnectProvider.instance.goBack(uri: uri)
   }
   
 }
