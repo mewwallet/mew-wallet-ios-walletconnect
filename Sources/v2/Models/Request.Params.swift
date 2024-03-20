@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import WalletConnectSign
+@preconcurrency import WalletConnectSign
 
 extension Request {
   public struct Params {

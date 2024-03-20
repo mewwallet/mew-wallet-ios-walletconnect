@@ -1,5 +1,5 @@
 import os
-import WalletConnectSign
+@preconcurrency import WalletConnectSign
 import WalletConnectUtils
 import WalletConnectPairing
 import WalletConnectPush
@@ -16,7 +16,7 @@ public enum WalletConnectServiceError: Error {
   case badParameters
 }
 
-public final class WalletConnectProvider {
+public final class WalletConnectProvider: Sendable {
   public static let instance = WalletConnectProvider()
   
   public let events = WalletConnectSessionPublisher()
@@ -43,9 +43,10 @@ public final class WalletConnectProvider {
     groupIdentifier: String,
     notifications: (pushHost: String?, environment: APNSEnvironment)?,
     metadata: AppMetadata,
-    cryptoProvider: CryptoProvider & BIP44Provider
+    cryptoProvider: CryptoProvider & BIP44Provider,
+    socketFactory: any WebSocketFactory
   ) {
-    Networking.configure(groupIdentifier: groupIdentifier, projectId: projectId, socketFactory: SocketFactory())
+    Networking.configure(groupIdentifier: groupIdentifier, projectId: projectId, socketFactory: socketFactory)
     Pair.configure(metadata: metadata)
     Auth.configure(crypto: cryptoProvider)
     

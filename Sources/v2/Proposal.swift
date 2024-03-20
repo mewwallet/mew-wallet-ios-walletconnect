@@ -1,13 +1,13 @@
 import WalletConnectSign
 
-public struct Proposal {
+public struct Proposal: Sendable {
   public let proposerName: String
   public let proposerDescription: String
   public let proposerURL: String
   public let iconURL: String
   public let permissions: [Namespace]
   
-  public struct Namespace: Hashable {
+  public struct Namespace: Hashable, Sendable {
     public let chains: [String]
     public let methods: [String]
     public let events: [String]

@@ -18,7 +18,7 @@ public enum AuthRequest {
   }
   
   public var redirect: String? {
-    guard case .v2(let request, let context) = self else { return nil }
+    guard case .v2(let request, _ /*let context*/) = self else { return nil }
     return request.requester.redirect?.native ?? request.requester.redirect?.universal
   }
 }
@@ -26,3 +26,7 @@ public enum AuthRequest {
 // MARK: - AuthRequest + Equatable
 
 extension AuthRequest: Equatable {}
+
+// MARK: - AuthRequest + Sendable
+
+extension AuthRequest: Sendable {}

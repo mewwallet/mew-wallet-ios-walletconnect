@@ -10,5 +10,5 @@ import Foundation
 import mew_wallet_ios_logger
 
 extension Logger.System {
-  public static var rootProvider       = Logger.System.with(subsystem: "com.myetherwallet.mewwallet.walletconnect", category: "root: provider")
+  public static let rootProvider       = Logger.System.with(subsystem: "com.myetherwallet.mewwallet.walletconnect", category: "root: provider")
 }

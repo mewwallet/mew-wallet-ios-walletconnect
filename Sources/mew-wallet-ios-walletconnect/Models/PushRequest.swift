@@ -15,3 +15,7 @@ public enum PushRequest {
 // MARK: - PushRequest + Equatable
 
 extension PushRequest: Equatable {}
+
+// MARK: - PushRequest + Sendable
+
+extension PushRequest: Sendable {}
