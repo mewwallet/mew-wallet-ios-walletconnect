@@ -8,7 +8,7 @@
 import Foundation
 
 extension WalletConnectProvider {
-  public enum Error: LocalizedError {
+  public enum Error: LocalizedError, Sendable {
     case invalidPairingURL
   }
 }

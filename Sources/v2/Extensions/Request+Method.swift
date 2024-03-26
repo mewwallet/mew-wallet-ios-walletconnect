@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import WalletConnectSign
+@preconcurrency import WalletConnectSign
 
 private let _nonHexCharacterSet = CharacterSet(charactersIn: "0123456789ABCDEF").inverted
 
