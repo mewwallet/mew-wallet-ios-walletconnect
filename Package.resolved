@@ -1,21 +1,13 @@
 {
+  "originHash" : "6afa2cb039cbf0dd7d45c2ac56e2a7b461a4ff5689b638b17c75c56f72b4b977",
   "pins" : [
-    {
-      "identity" : "cryptoswift",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/krzyzanowskim/CryptoSwift",
-      "state" : {
-        "revision" : "19b3c3ceed117c5cc883517c4e658548315ba70b",
-        "version" : "1.6.0"
-      }
-    },
     {
       "identity" : "mew-wallet-ios-logger",
       "kind" : "remoteSourceControl",
-      "location" : "git@github.com:mewwallet/mew-wallet-ios-logger.git",
+      "location" : "https://github.com/mewwallet/mew-wallet-ios-logger.git",
       "state" : {
-        "revision" : "4e17e0015a3e6a5d8b4f1965f9c1ffbb9f64661f",
-        "version" : "2.0.0"
+        "revision" : "4fc7d6bb41c21f1ed47e0c0e43ecfc0a4d72d26f",
+        "version" : "2.0.1"
       }
     },
     {
@@ -28,21 +20,12 @@
       }
     },
     {
-      "identity" : "starscream",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/daltoniam/Starscream.git",
-      "state" : {
-        "revision" : "df8d82047f6654d8e4b655d1b1525c64e1059d21",
-        "version" : "4.0.4"
-      }
-    },
-    {
       "identity" : "swift-log",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-log.git",
       "state" : {
-        "revision" : "32e8d724467f8fe623624570367e3d50c5638e46",
-        "version" : "1.5.2"
+        "revision" : "e97a6fcb1ab07462881ac165fdbb37f067e205d5",
+        "version" : "1.5.4"
       }
     },
     {
@@ -77,10 +60,10 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/WalletConnect/WalletConnectSwiftV2",
       "state" : {
-        "revision" : "2203cc49728c48d54c09f032646782e7cf1eb27f",
-        "version" : "1.6.4"
+        "revision" : "232090b71756417c2ba44cda78ff57bc5ef54ca2",
+        "version" : "1.11.0"
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

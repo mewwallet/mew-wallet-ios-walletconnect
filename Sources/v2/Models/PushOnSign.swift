@@ -8,7 +8,7 @@
 import Foundation
 import WalletConnectPush
 
-public final class PushOnSign {
+public final class PushOnSign: Sendable {
   private let uuid = UUID()
   
   init() {}
