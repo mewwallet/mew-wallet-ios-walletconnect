@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Session: Equatable {
+extension Session: @retroactive Equatable {
   public static func == (lhs: Session, rhs: Session) -> Bool {
     return lhs.topic == rhs.topic
   }

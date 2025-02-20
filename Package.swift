@@ -17,7 +17,7 @@ let package = Package(
       targets: ["mew-wallet-ios-walletconnect-v2"])
   ],
   dependencies: [
-    .package(url: "https://github.com/WalletConnect/WalletConnectSwiftV2", exact: "1.11.0"),
+    .package(url: "https://github.com/reown-com/reown-swift.git", exact: "1.4.1"),
     .package(url: "https://github.com/mewwallet/mew-wallet-ios-logger.git", .upToNextMajor(from: "2.0.0"))
   ],
   targets: [
@@ -38,14 +38,13 @@ let package = Package(
       name: "mew-wallet-ios-walletconnect-v2",
       dependencies: [
         .product(name: "mew-wallet-ios-logger", package: "mew-wallet-ios-logger"),
-        .product(name: "WalletConnect", package: "WalletConnectSwiftV2"),
-        .product(name: "WalletConnectNetworking", package: "WalletConnectSwiftV2"),
-        .product(name: "WalletConnectPush", package: "WalletConnectSwiftV2"),
-        .product(name: "WalletConnectAuth", package: "WalletConnectSwiftV2"),
-        .product(name: "WalletConnectRouter", package: "WalletConnectSwiftV2"),
-        .product(name: "WalletConnectNotify", package: "WalletConnectSwiftV2"),
-        .product(name: "WalletConnectSync", package: "WalletConnectSwiftV2"),
-        .product(name: "WalletConnectPairing", package: "WalletConnectSwiftV2"),
+        .product(name: "WalletConnect", package: "reown-swift"),
+        .product(name: "WalletConnectNetworking", package: "reown-swift"),
+        .product(name: "WalletConnectPush", package: "reown-swift"),
+        .product(name: "ReownRouter", package: "reown-swift"),
+        .product(name: "WalletConnectNotify", package: "reown-swift"),
+        .product(name: "WalletConnectPairing", package: "reown-swift"),
+        .product(name: "ReownWalletKit", package: "reown-swift"),
       ],
       path: "Sources/v2",
       resources: [

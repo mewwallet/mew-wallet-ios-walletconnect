@@ -1,7 +1,7 @@
 import Foundation
 @preconcurrency import Combine
 @preconcurrency import WalletConnectSign
-@preconcurrency import Auth
+import ReownWalletKit
 
 public final class WalletConnectSessionPublisher: Sendable {
   internal let pushOnSignSubject = PassthroughSubject<PushOnSign, Never>()
@@ -43,7 +43,7 @@ public final class WalletConnectSessionPublisher: Sendable {
   }
   
   public var authRequests: AnyPublisher<(request: WCAuthRequest, context: VerifyContext?), Never> {
-    return Auth.instance.authRequestPublisher
+    return WalletKit.instance.authenticateRequestPublisher
   }
   
   /// Publisher that sends session event
