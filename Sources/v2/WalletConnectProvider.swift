@@ -1,15 +1,13 @@
 import os
 @preconcurrency import WalletConnectSign
 import WalletConnectUtils
-import WalletConnectPairing
 import WalletConnectPush
-import WalletConnectRouter
-import WalletConnectSync
+import ReownRouter
 import WalletConnectNotify
-import Auth
-import Combine
+@preconcurrency import Combine
 import Foundation
 import mew_wallet_ios_logger
+import ReownWalletKit
 
 public enum WalletConnectServiceError: Error {
   case invalidPairingURL
@@ -27,7 +25,7 @@ public final class WalletConnectProvider: Sendable {
     Sign.instance.getSessions()
   }
   
-  private var pushValidationSubject = PassthroughSubject<PushOnSign, Never>()
+  private let pushValidationSubject = PassthroughSubject<PushOnSign, Never>()
   
   private var publishers = [AnyCancellable]()
   
@@ -43,12 +41,19 @@ public final class WalletConnectProvider: Sendable {
     groupIdentifier: String,
     notifications: (pushHost: String?, environment: APNSEnvironment)?,
     metadata: AppMetadata,
-    cryptoProvider: CryptoProvider & BIP44Provider,
+    cryptoProvider: CryptoProvider,
     socketFactory: any WebSocketFactory
   ) {
-    Networking.configure(groupIdentifier: groupIdentifier, projectId: projectId, socketFactory: socketFactory)
-    Pair.configure(metadata: metadata)
-    Auth.configure(crypto: cryptoProvider)
+    Networking.configure(
+      groupIdentifier: groupIdentifier,
+      projectId: projectId,
+      socketFactory: socketFactory
+    )
+    
+    WalletKit.configure(
+      metadata: metadata,
+      crypto: cryptoProvider
+    )
     
     if let notifications {
       if let pushHost = notifications.pushHost {
@@ -56,8 +61,6 @@ public final class WalletConnectProvider: Sendable {
       } else {
         Notify.configure(environment: notifications.environment, crypto: cryptoProvider)
       }
-      
-      Sync.configure(bip44: cryptoProvider)
       
       // FIXME: Re-do push notifications
       
@@ -86,7 +89,7 @@ public final class WalletConnectProvider: Sendable {
   /// - When URI is invalid format or missing params
   /// - When topic is already in use
   public func pair(url: String) async throws {
-    guard let wcURL = WalletConnectURI(string: url) else { throw WalletConnectServiceError.invalidPairingURL }
+    let wcURL = try WalletConnectURI(uriString: url)
     try await Pair.instance.pair(uri: wcURL)
   }
   
@@ -146,18 +149,22 @@ public final class WalletConnectProvider: Sendable {
   ///   - proposalId: Session Proposal id
   ///   - namespaces: namespaces for given session, needs to contain at least required namespaces proposed by dApp.
   public func approve(proposalId: String, namespaces: [String: SessionNamespace]) async throws {
-    try await Sign.instance.approve(proposalId: proposalId, namespaces: namespaces)
+    try await WalletKit.instance.approve(proposalId: proposalId, namespaces: namespaces)
   }
   
-  public func approve(authRequest: WCAuthRequest, signature: String, chainId: UInt64, address: String) async throws {
-    guard let blockchain = Blockchain(namespace: "eip155", reference: String(chainId)) else { return }
-    guard let account = Account(blockchain: blockchain, address: address) else { return }
-    let signature = CacaoSignature(t: .eip191, s: signature)
-    try await Auth.instance.respond(requestId: authRequest.id, signature: signature, from: account)
+  public func approve(authRequest: WCAuthRequest, signatures: [(chainId: UInt64, signature: String, payload: WCAuthPayload)], address: String) async throws {
+    let authObjects = try signatures.compactMap { (chainId: UInt64, signature: String, payload: WCAuthPayload) throws -> AuthObject? in
+      guard let blockchain = Blockchain(namespace: "eip155", reference: String(chainId)) else { return nil }
+      guard let account = Account(blockchain: blockchain, address: address) else { return nil }
+      let cacaoSignature = CacaoSignature(t: .eip191, s: signature.hasPrefix("0x") ? signature : "0x" + signature)
+      return try WalletKit.instance.buildSignedAuthObject(authPayload: payload, signature: cacaoSignature, account: account)
+    }
+    
+    try await WalletKit.instance.approveSessionAuthenticate(requestId: authRequest.id, auths: authObjects)
   }
   
-  public func reject(authRequest: AuthRequest) async throws {
-    try await Auth.instance.reject(requestId: authRequest.id)
+  public func reject(authRequest: WCAuthRequest) async throws {
+    try await WalletKit.instance.rejectSession(requestId: authRequest.id)
   }
   
   /// For the wallet to update session namespaces
@@ -173,7 +180,7 @@ public final class WalletConnectProvider: Sendable {
     session.namespaces.forEach {
       let caip2Namespace = $0.key
       let proposalNamespace = $0.value
-      let accounts = Set(
+      let accounts = Array(
         proposalNamespace.accounts.flatMap({ namespace in
           accounts.compactMap { address in
             var blockchain = namespace.blockchain
@@ -198,7 +205,7 @@ public final class WalletConnectProvider: Sendable {
   ///   - proposalId: Session Proposal id
   ///   - reason: Reason why the session proposal has been rejected. Conforms to CAIP25.
   public func reject(proposalId: String, reason: RejectionReason) async throws {
-    try await Sign.instance.reject(proposalId: proposalId, reason: reason)
+    try await Sign.instance.rejectSession(proposalId: proposalId, reason: reason)
   }
   
   /// Ping method allows to check if peer client is online and is subscribing for given topic
@@ -251,6 +258,6 @@ public final class WalletConnectProvider: Sendable {
   }
   
   public func goBack(uri: String) {
-    WalletConnectRouter.goBack(uri: uri)
+    ReownRouter.goBack(uri: uri)
   }
 }

@@ -108,10 +108,14 @@ public final class WalletConnectProvider {
     }
   }
   
-  public func approve(authRequest: AuthRequest, signature: String, chainId: UInt64, account: String) async throws {
+  public func approve(authRequest: AuthRequest, signatures: [AuthRequest.SignedAuthMessage], account: String) async throws {
     switch authRequest {
     case .v2(let request, _):
-      try await WC2.WalletConnectProvider.instance.approve(authRequest: request, signature: signature, chainId: chainId, address: account)
+      try await WC2.WalletConnectProvider.instance.approve(
+        authRequest: request,
+        signatures: signatures.map({ ($0.message.chain, $0.signature, $0.message.payload) }),
+        address: account
+      )
     }
   }
   
