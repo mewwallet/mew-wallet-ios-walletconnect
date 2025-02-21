@@ -16,7 +16,7 @@ public struct WC2 {
   public typealias Request = mew_wallet_ios_walletconnect_v2.Request
   public typealias AuthRequest = mew_wallet_ios_walletconnect_v2.WCAuthRequest
   public typealias Reason = mew_wallet_ios_walletconnect_v2.Reason
-  public typealias CryptoProvider = mew_wallet_ios_walletconnect_v2.WCCryptoProvider & mew_wallet_ios_walletconnect_v2.WCBIP44Provider
+  public typealias CryptoProvider = mew_wallet_ios_walletconnect_v2.WCCryptoProvider
   public typealias SIWECacaoFormatter = mew_wallet_ios_walletconnect_v2.SIWECacaoFormatter
   public typealias APNSEnvironment = mew_wallet_ios_walletconnect_v2.APNSEnvironment
   public typealias PushOnSignRequest = PushOnSign
