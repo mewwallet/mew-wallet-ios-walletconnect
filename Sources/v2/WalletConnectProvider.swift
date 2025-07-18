@@ -105,7 +105,7 @@ public final class WalletConnectProvider: Sendable {
     try await WalletConnectProvider.instance.respond(
       topic: request.topic,
       requestId: request.id,
-      response: .error(.init(code: 0, message: ""))
+      response: .error(.init(code: 4001, message: "The user rejected the request."))
     )
   }
   
