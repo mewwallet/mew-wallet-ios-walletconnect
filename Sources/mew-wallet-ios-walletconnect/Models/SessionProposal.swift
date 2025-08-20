@@ -38,8 +38,8 @@ public enum SessionProposal {
     switch self {
     case .v2(let proposal, _):
       guard let namespace = proposal.optionalNamespaces else { return nil }
-      guard !namespace.contains(where: { !$0.key.hasPrefix("eip155") }) else { return nil }
       let chainIdsReferences = namespace.flatMap { (key, namespace) -> [String] in
+        guard key.hasPrefix("eip155") else { return [] }
         if let chains = namespace.chains {
           return chains.map({ $0.reference })
         } else if key.count > 7 {
