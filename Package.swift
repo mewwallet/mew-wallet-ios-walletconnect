@@ -17,7 +17,7 @@ let package = Package(
       targets: ["mew-wallet-ios-walletconnect-v2"])
   ],
   dependencies: [
-    .package(url: "https://github.com/reown-com/reown-swift.git", exact: "1.4.1"),
+    .package(url: "https://github.com/reown-com/reown-swift.git", exact: "1.7.3"),
     .package(url: "https://github.com/mewwallet/mew-wallet-ios-logger.git", .upToNextMajor(from: "2.0.0"))
   ],
   targets: [
